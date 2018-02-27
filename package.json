@@ -1,0 +1,55 @@
+{
+  "name": "gotmoneyapp",
+  "version": "0.0.1",
+  "description": "GotMoney App",
+  "author": "Mauricio Lauffer",
+  "private": true,
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "coveralls": "^3.0.0",
+    "dotenv": "^5.0.1",
+    "eslint": "^4.18.1",
+    "grunt": "^1.0.2",
+    "mocha": "^5.0.1",
+    "mocha-lcov-reporter": "^1.3.0",
+    "nyc": "^11.4.1",
+    "sinon": "^4.4.2",
+    "supertest": "^3.0.0"
+  },
+  "dependencies": {
+    "ajv": "^6.2.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.2",
+    "compression": "^1.7.2",
+    "connect-mongo": "^2.0.1",
+    "cors": "^2.8.4",
+    "crypto-js": "^3.1.9-1",
+    "csurf": "^1.9.0",
+    "express": "^4.16.2",
+    "express-session": "^1.15.6",
+    "helmet": "^3.11.0",
+    "jsonwebtoken": "^8.1.1",
+    "morgan": "^1.9.0",
+    "mysql2": "^1.5.2",
+    "nodemailer": "^4.6.0",
+    "passport": "^0.4.0",
+    "passport-facebook-token": "^3.3.0",
+    "passport-google-token": "^0.1.2",
+    "passport-jwt": "^3.0.1",
+    "passport-local": "^1.0.0",
+    "winston": "^2.4.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "nyc --reporter=html --reporter=text mocha ./test/unit",
+    "posttest": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mauriciolauffer/gotmoney-backend.git"
+  },
+  "engines": {
+    "node": "8.9.3"
+  }
+}

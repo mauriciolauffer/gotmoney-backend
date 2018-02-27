@@ -1,0 +1,6 @@
+/.idea/
+/build/
+/node_modules/
+/public/js/resources/
+/library/Zend/*
+npm-debug.log
