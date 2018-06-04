@@ -4,7 +4,7 @@ const chai = require('chai');
 const sinon = require('sinon');
 const chaiAsPromised = require('chai-as-promised');
 const passport = require('passport');
-const sandbox = sinon.sandbox.create();
+const sandbox = sinon.createSandbox();
 
 chai.use(chaiAsPromised);
 

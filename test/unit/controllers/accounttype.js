@@ -5,7 +5,7 @@ const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 const db = require('../../../models/database');
 const AccountType = require('../../../controllers/accounttype');
-const sandbox = sinon.sandbox.create();
+const sandbox = sinon.createSandbox();
 const expect = chai.expect;
 const dataEntryTest = {
   idtype: 1,

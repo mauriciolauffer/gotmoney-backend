@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 const db = require('../../../models/database');
 const User = require('../../../controllers/user');
 const expect = chai.expect;
-const sandbox = sinon.sandbox.create();
+const sandbox = sinon.createSandbox();
 const dataEntryTest = {
   iduser: 9999999999,
   name: 2,

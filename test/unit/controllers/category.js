@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const db = require('../../../models/database');
 const Category = require('../../../controllers/category');
 const expect = chai.expect;
-const sandbox = sinon.sandbox.create();
+const sandbox = sinon.createSandbox();
 const dataEntryTest = {
   iduser: 1,
   idcategory: 2,

@@ -7,7 +7,7 @@ const expect = require('chai').expect;
 const app = require('../../../app');
 const User = require('../../../controllers/user');
 const mock_middleware = require('../../mock_middleware');
-const sandbox = sinon.sandbox.create();
+const sandbox = sinon.createSandbox();
 const agent = supertest.agent(app);
 const payloadBase = {
   iduser: 1,
