@@ -16,16 +16,6 @@ function getSchema(id, required) {
         type: 'string',
         maxLength: 80
       },
-      gender: {
-        type: 'string',
-        enum: ['F', 'M'],
-        maxLength: 1
-      },
-      birthdate: {
-        type: 'string',
-        format: 'date-time',
-        maxLength: 30
-      },
       email: {
         type: 'string',
         format: 'email',
@@ -72,14 +62,14 @@ function isValidLogin() {
 
 function isValidSignup() {
   return function(req, res, next) {
-    const schema = getSchema('signup', ['name', 'gender', 'birthdate', 'email', 'passwd']);
+    const schema = getSchema('signup', ['name', 'email', 'passwd']);
     next(validate(schema, req.body));
   };
 }
 
 function isValidUpdate() {
   return function(req, res, next) {
-    const schema = getSchema('update', ['name', 'gender', 'birthdate']);
+    const schema = getSchema('update', ['name']);
     next(validate(schema, req.body));
   };
 }
