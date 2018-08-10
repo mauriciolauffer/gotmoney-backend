@@ -29,7 +29,10 @@ router.get('/', (req, res, next) => {
 router.post('/', validate.isValidCreate(), (req, res, next) => {
   const transaction = new Transaction();
   const payload = req.body;
-  transaction.createBatch(req.user.iduser, payload.data)
+  payload.data.forEach((payloadItem) => {
+    payloadItem.iduser = req.user.iduser;
+  });
+  transaction.createBatch(payload.data)
     .then(() => res.status(201).json({}))
     .catch((err) => next(err));
 });

@@ -112,7 +112,7 @@ Transaction.prototype.create = function() {
     });
 };
 
-Transaction.prototype.createBatch = function(iduser, payload) {
+Transaction.prototype.createBatch = function(payload) {
   return db.insertMany(payload)
     .then((docs) => docs)
     .catch((err) => {
