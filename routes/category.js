@@ -15,7 +15,7 @@ router.delete('/:id', (req, res, next) => {
     idcategory: req.params.id
   });
   category.delete()
-    .then((result) => res.status(200).json({}))
+    .then(() => res.status(200).json({}))
     .catch((err) => next(err));
 });
 
@@ -40,7 +40,7 @@ router.put('/:id', isValid(), (req, res, next) => {
   payload.iduser = req.user.iduser;
   const category = new Category(payload);
   category.update()
-    .then((result) => res.status(200).json({}))
+    .then(() => res.status(200).json({}))
     .catch((err) => next(err));
 });
 

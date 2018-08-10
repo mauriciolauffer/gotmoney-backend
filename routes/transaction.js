@@ -15,7 +15,7 @@ router.delete('/:id', (req, res, next) => {
     idtransaction: req.params.id
   });
   transaction.delete()
-    .then((result) => res.status(200).json({}))
+    .then(() => res.status(200).json({}))
     .catch((err) => next(err));
 });
 
@@ -39,7 +39,7 @@ router.put('/:id', validate.isValid(), (req, res, next) => {
   payload.iduser = req.user.iduser;
   const transaction = new Transaction(payload);
   transaction.update()
-    .then((result) => res.status(200).json({}))
+    .then(() => res.status(200).json({}))
     .catch((err) => next(err));
 });
 

@@ -1,14 +1,14 @@
 'use strict';
 
-const mysql = require('mysql2');
-const db = require('./../models/database');
+const db = require('../models/transaction');
+const CustomErrors = require('../utils/errors');
 
 function Transaction(data = {}) {
   this.setProperties(data);
 }
 
 Transaction.prototype.setProperties = function({iduser, idtransaction, idaccount, idparent, idstatus, description,
-                                                instalment, amount, type, startdate, duedate, tag, origin, lastchange}) {
+                                                instalment, amount, type, startdate, duedate, tag, origin}) {
   this.props = {
     iduser: iduser,
     idtransaction: idtransaction,
@@ -22,8 +22,7 @@ Transaction.prototype.setProperties = function({iduser, idtransaction, idaccount
     startdate: startdate,
     duedate: duedate,
     tag: tag,
-    origin: origin,
-    lastchange: lastchange
+    origin: origin
   };
 };
 
@@ -32,100 +31,140 @@ Transaction.prototype.getProperties = function() {
 };
 
 Transaction.prototype.findById = function(iduser, idtransaction) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM transactions WHERE iduser = ? AND idtransaction = ?';
-    const parameters = [iduser, idtransaction];
-    db.executePromise(sql, parameters)
-      .then((result) => resolve(new Transaction(result[0])))
-      .catch((err) => reject(err));
-  });
+  return db.findOne({
+    iduser: iduser,
+    idtransaction: idtransaction
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return new Transaction(docs[0]);
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Transaction.prototype.getAll = function(iduser) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM transactions WHERE iduser = ? ORDER BY duedate';
-    const parameters = [iduser];
-    db.executePromise(sql, parameters)
-      .then((result) => resolve(result))
-      .catch((err) => reject(err));
-  });
+  return db.find({ iduser: iduser })
+    .sort({ duedate: 1 })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Transaction.prototype.findByPeriod = function(iduser, year, month) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM transactions WHERE iduser = ? AND EXTRACT(YEAR_MONTH FROM duedate) = ? ORDER BY duedate';
-    const parameters = [iduser, year + '' + month];
-    db.executePromise(sql, parameters)
-      .then((result) => resolve(result))
-      .catch((err) => reject(err));
-  });
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0);
+  return db.find({
+    iduser: iduser,
+    duedate: { $gt: firstDay, $lt: lastDay }
+  })
+    .sort({ duedate: 1 })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Transaction.prototype.findOverdue = function(iduser) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM transactions WHERE iduser = ? AND duedate < ? ORDER BY duedate';
-    const parameters = [iduser, new Date()];
-    db.executePromise(sql, parameters)
-      .then((result) => resolve(result))
-      .catch((err) => reject(err));
-  });
+  return db.find({
+    iduser: iduser,
+    duedate: { $lt: new Date() }
+  })
+    .sort({ duedate: 1 })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Transaction.prototype.create = function() {
-  return new Promise((resolve, reject) => {
-    const fields = 'iduser, idtransaction, idaccount, idparent, idstatus, description, instalment, amount, type, ' +
-      'startdate, duedate, tag, origin';
-    const sql = 'INSERT INTO transactions (' + fields + ') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    const parameters = [this.props.iduser, this.props.idtransaction, this.props.idaccount, this.props.idparent,
-                        this.props.idstatus, this.props.description, this.props.instalment, this.props.amount,
-                        this.props.type, this.props.startdate, this.props.duedate, this.props.tag, this.props.origin];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.create(this.props)
+    .then((docs) => docs)
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Transaction.prototype.createBatch = function(iduser, payload) {
-  return new Promise((resolve, reject) => {
-    const fields = 'iduser, idtransaction, idaccount, idparent, idstatus, description, instalment, amount, type, ' +
-      'startdate, duedate, tag, origin';
-    const sql = 'INSERT INTO transactions (' + fields + ') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    const sqlBulk = [];
-    payload.forEach((item) => {
-      const parameters = [iduser, item.idtransaction, item.idaccount, item.idparent,
-                          item.idstatus, item.description, item.instalment, item.amount, item.type,
-                          item.startdate, item.duedate, item.tag, item.origin];
-      sqlBulk.push(mysql.format(sql, parameters));
+  return db.insertMany(payload)
+    .then((docs) => docs)
+    .catch((err) => {
+      throw err;
     });
-    const sqlFinal = sqlBulk.join('; ');
-    db.queryPromise(sqlFinal)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
 };
 
 Transaction.prototype.update = function() {
-  return new Promise((resolve, reject) => {
-    const fields = 'idaccount = ?, idstatus = ?, description = ?, instalment = ?, amount = ?, type = ?, ' +
-      'startdate = ?, duedate = ?, tag = ?, origin = ?';
-    const sql = 'UPDATE transactions SET ' + fields + ' WHERE iduser = ? AND idtransaction = ?';
-    const parameters = [this.props.idaccount, this.props.idstatus, this.props.description, this.props.instalment,
-                        this.props.amount, this.props.type, this.props.startdate, this.props.duedate,
-                        this.props.tag, this.props.origin, this.props.iduser, this.props.idtransaction];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.findOneAndUpdate({
+    iduser: this.props.iduser,
+    idtransaction: this.props.idtransaction
+  }, {
+    idaccount: this.props.idaccount,
+    idstatus: this.props.idstatus,
+    description: this.props.description,
+    instalment: this.props.instalment,
+    amount: this.props.amount,
+    type: this.props.type,
+    startdate: this.props.startdate,
+    duedate: this.props.duedate,
+    tag: this.props.tag,
+    origin: this.props.origin
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Transaction.prototype.delete = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'DELETE FROM transactions WHERE iduser = ? AND idtransaction = ?';
-    const parameters = [this.props.iduser, this.props.idtransaction];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.findOneAndDelete({
+    iduser: this.props.iduser,
+    idtransaction: this.props.idtransaction
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 module.exports = Transaction;

@@ -15,7 +15,7 @@ router.delete('/:id', (req, res, next) => {
     idaccount: req.params.id
   });
   account.delete()
-    .then((result) => res.status(200).json({}))
+    .then(() => res.status(200).json({}))
     .catch((err) => next(err));
 });
 
@@ -40,7 +40,7 @@ router.put('/:id', isValid(), (req, res, next) => {
   payload.iduser = req.user.iduser;
   const account = new Account(payload);
   account.update()
-    .then((result) => res.status(200).json({}))
+    .then(() => res.status(200).json({}))
     .catch((err) => next(err));
 });
 

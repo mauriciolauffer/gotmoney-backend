@@ -1,17 +1,18 @@
 'use strict';
 
-const db = require('./../models/database');
+const db = require('../models/accounttype');
 
 function AccountType() {}
 
 AccountType.prototype.getAll = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM accounttypes';
-    const parameters = [];
-    db.executePromise(sql, parameters)
-      .then((result) => resolve(result))
-      .catch((err) => reject(err));
-  });
+  return db.find({})
+    .lean().exec()
+    .then((docs) => docs)
+    .catch((err) => {
+      err.status = 404;
+      err.code = 'NOT_FOUND';
+      throw err;
+    });
 };
 
 module.exports = AccountType;

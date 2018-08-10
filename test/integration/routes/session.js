@@ -3,36 +3,14 @@
 const nodemailer = require('nodemailer');
 const sinon = require('sinon');
 const supertest = require('supertest');
-const expect = require('chai').expect;
+const { expect } = require('chai');
 const app = require('../../../app');
 const User = require('../../../controllers/user');
-const mock_middleware = require('../../mock_middleware');
+const mock_middleware = require('../../helper/mock_middleware');
+const Helper = require('../../helper/helper');
 const sandbox = sinon.createSandbox();
 const agent = supertest.agent(app);
-const payloadBase = {
-  iduser: 1,
-  name: 'Node Unit Test',
-  gender: 'F',
-  birthdate: new Date().toJSON(),
-  email: 'node@unit.test',
-  passwd: '123456@ABC',
-  alert: true,
-  facebook: null,
-  google: null,
-  twitter: null,
-  lastchange: 12
-};
-
-function getCSRFToken() {
-  return new Promise((resolve, reject) => {
-    agent.get('/api/session/token')
-      .expect(200)
-      .end((err, res) => {
-        if (err) return reject(err);
-        resolve(res.body.csrfToken);
-      });
-  });
-}
+const payloadBase = Helper.getFakeUser();
 
 describe('Routing Session', () => {
   before(() => {
@@ -41,7 +19,6 @@ describe('Routing Session', () => {
         return Promise.resolve();
       }
     };
-
     sandbox.stub(nodemailer, 'createTransport').returns(fakeSendEmailResolved);
   });
 
@@ -53,7 +30,7 @@ describe('Routing Session', () => {
 
   describe('POST /api/session/signup', () => {
     it('should signup a user', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/session/signup')
             .send(payloadBase)
@@ -71,7 +48,7 @@ describe('Routing Session', () => {
     });
 
     it('should fail when signup a user, email already exist', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/session/signup')
             .send(payloadBase)
@@ -85,8 +62,8 @@ describe('Routing Session', () => {
 
     it('should fail when signup a user', (done) => {
       const payload = Object.assign({}, payloadBase);
-      payload.email = 'email';
-      getCSRFToken()
+      payload.email = payload.passwd;
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/session/signup')
             .send(payload)
@@ -108,7 +85,7 @@ describe('Routing Session', () => {
 
   describe('POST /api/session/login', () => {
     it('should log in user', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/session/login')
             .send({
@@ -124,12 +101,12 @@ describe('Routing Session', () => {
     });
 
     it('should return user is not authenticated', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/session/login')
             .send({
               email: payloadBase.email,
-              passwd: '1234567890ZZZ'
+              passwd: payloadBase.passwd + payloadBase.email
             })
             .set('x-csrf-token', csrfToken)
             .set('Accept', 'application/json')
@@ -142,7 +119,7 @@ describe('Routing Session', () => {
 
   describe('PUT /api/session/recovery', () => {
     it('should update password', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/session/recovery')
             .send(payloadBase)
@@ -155,7 +132,7 @@ describe('Routing Session', () => {
     });
 
     it('should fail when update password', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/session/recovery')
             .send({email: 'xxxxx@xxxxx.xxxxx'})
@@ -170,7 +147,7 @@ describe('Routing Session', () => {
 
   describe('POST /api/session/facebook', () => {
     it('should fail when login Facebook', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/session/facebook')
             .set('x-csrf-token', csrfToken)
@@ -184,7 +161,7 @@ describe('Routing Session', () => {
 
   describe('POST /api/session/google', () => {
     it('should fail when login Google', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/session/google')
             .set('x-csrf-token', csrfToken)

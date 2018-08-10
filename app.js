@@ -6,6 +6,7 @@ const compression = require('compression');
 const helmet = require('helmet');
 const logger = require('winston');
 const morgan = require('morgan');
+const mongoose = require('mongoose');
 const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
@@ -14,18 +15,6 @@ const csrf = require('csurf');
 const sha1 = require('crypto-js/sha1');
 const base64 = require('crypto-js/enc-base64');
 const app = express();
-const sessionData = {
-  name: 'gotmoney.sid',
-  secret: sha1(process.env.SESSION_SECRET + Math.random().toString()).toString(),
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.COOKIE_SECURE == true,
-    httpOnly: true,
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  }
-};
-
 const corsOrigin = new RegExp('^' + process.env.CORS_ORIGIN);
 const corsParams = {
   origin: corsOrigin,
@@ -35,16 +24,28 @@ const corsParams = {
   exposedHeaders: ['Set-Cookie', 'x-xsrf-token', 'X-CSRF-Token', 'x-csrf-token', 'X-Got-Money']
 };
 logger.level = process.env.LOG_LEVEL;
-sessionData.store = new MongoStore({
-  url: [process.env.SESSION_PROTOCOL,
-        process.env.SESSION_CREDENTIALS,
-        process.env.SESSION_CLUSTERS,
-        process.env.SESSION_DB,
-        process.env.SESSION_PARAMETERS].join('')
-});
-
-//Clear all sessions when starting the app
-sessionData.store.clear(() => true);
+mongoose.connect(process.env.DB_URL, {
+  ssl: true,
+  useNewUrlParser: true
+})
+  .then(() => (true))
+  .catch((err) => {
+    console.dir(err);
+    process.exit(1);
+  });
+const sessionData = {
+  name: 'gotmoney.sid',
+  resave: false,
+  saveUninitialized: false,
+  secret: sha1([new Date().toISOString(), process.env.SESSION_SECRET, Math.random()].join()).toString(),
+  store: new MongoStore({ mongooseConnection: mongoose.connection }),
+  cookie: {
+    secure: process.env.COOKIE_SECURE == true,
+    httpOnly: true,
+    maxAge: 7 * 24 * 60 * 60 * 1000
+  }
+};
+sessionData.store.clear(() => true); //Clear all sessions when starting the app
 
 if (app.get('env') === 'production') {
   app.use(morgan('combined'));
@@ -65,7 +66,7 @@ app.use(csrf({ cookie: false }));
 require('./auth/authentication')(app);
 
 app.use((req, res, next) => {
-  res.set('X-Got-Money', base64.stringify(sha1(Math.random().toString() + new Date().toISOString())));
+  res.set('X-Got-Money', base64.stringify(sha1([Math.random(), new Date().toISOString()].join())));
   res.locals.csrftoken = req.csrfToken();
   res.locals.session = req.session;
   next();

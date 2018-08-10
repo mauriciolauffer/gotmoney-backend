@@ -1,12 +1,14 @@
 'use strict';
 
-const db = require('./../models/database');
+const db = require('../models/account');
+const CustomErrors = require('../utils/errors');
 
 function Account(data = {}) {
   this.setProperties(data);
 }
 
-Account.prototype.setProperties = function({iduser, idaccount, idtype, description, creditlimit, balance, openingdate, duedate, lastchange}) {
+Account.prototype.setProperties = function({iduser, idaccount, idtype, description, creditlimit, balance,
+                                            openingdate, duedate}) {
   this.props = {
     iduser: iduser,
     idaccount: idaccount,
@@ -15,8 +17,7 @@ Account.prototype.setProperties = function({iduser, idaccount, idtype, descripti
     creditlimit: creditlimit || 0,
     balance: balance || 0,
     openingdate: openingdate,
-    duedate: duedate,
-    lastchange: lastchange
+    duedate: duedate
   };
 };
 
@@ -25,57 +26,88 @@ Account.prototype.getProperties = function() {
 };
 
 Account.prototype.findById = function(iduser, idaccount) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM accounts WHERE idaccount = ? AND iduser = ?';
-    const parameters = [idaccount, iduser];
-    db.executePromise(sql, parameters)
-      .then((result) => resolve(new Account(result[0])))
-      .catch((err) => reject(err));
-  });
+  return db.findOne({
+    iduser: iduser,
+    idaccount: idaccount
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return new Account(docs[0]);
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Account.prototype.getAll = function(iduser) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM accounts WHERE iduser = ? ORDER BY description';
-    const parameters = [iduser];
-    db.executePromise(sql, parameters)
-      .then((result) => resolve(result))
-      .catch((err) => reject(err));
-  });
+  return db.find({ iduser: iduser })
+    .sort({ description: 1 })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Account.prototype.create = function() {
-  return new Promise((resolve, reject) => {
-    const fields = 'idaccount, iduser, idtype, description, creditlimit, balance, openingdate, duedate';
-    const sql = 'INSERT INTO accounts (' + fields + ') VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-    const parameters = [this.props.idaccount, this.props.iduser, this.props.idtype, this.props.description,
-                        this.props.creditlimit, this.props.balance, this.props.openingdate, this.props.duedate];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.create(this.props)
+    .then((docs) => docs)
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Account.prototype.update = function() {
-  return new Promise((resolve, reject) => {
-    const fields = 'idtype= ?, description = ?, creditlimit = ?, balance = ?, openingdate = ?, duedate = ?';
-    const sql = 'UPDATE accounts SET ' + fields + ' WHERE idaccount = ? AND iduser = ?';
-    const parameters = [this.props.idtype, this.props.description, this.props.creditlimit, this.props.balance,
-                        this.props.openingdate, this.props.duedate, this.props.idaccount, this.props.iduser];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.findOneAndUpdate({
+    iduser: this.props.iduser,
+    idaccount: this.props.idaccount
+  }, {
+    idtype: this.props.idtype,
+    description: this.props.description,
+    creditlimit: this.props.creditlimit,
+    balance: this.props.balance,
+    openingdate: this.props.openingdate,
+    duedate: this.props.duedate
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Account.prototype.delete = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'DELETE FROM accounts WHERE idaccount = ? AND iduser = ?';
-    const parameters = [this.props.idaccount, this.props.iduser];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.findOneAndDelete({
+    iduser: this.props.iduser,
+    idaccount: this.props.idaccount
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 module.exports = Account;

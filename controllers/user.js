@@ -4,14 +4,15 @@ const bcrypt = require('bcryptjs');
 const md5 = require('crypto-js/md5');
 const sha256 = require('crypto-js/sha256');
 const base64 = require('crypto-js/enc-base64');
-const db = require('./../models/database');
+const db = require('../models/user');
+const CustomErrors = require('../utils/errors');
 
 function User(data = {}) {
   this.setProperties(data);
 }
 
-User.prototype.setProperties = function({iduser, name, gender, birthdate, email, createdon, passwd, alert, facebook,
-                                         google, twitter, lastchange}) {
+User.prototype.setProperties = function({iduser, name, gender, birthdate, email, createdon, passwd, alert,
+                                         facebook, google, twitter}) {
   this.props = {
     iduser: iduser,
     name: name,
@@ -20,11 +21,11 @@ User.prototype.setProperties = function({iduser, name, gender, birthdate, email,
     email: email,
     createdon: createdon || null,
     passwd: passwd || null,
-    alert: (alert) ? 1 : 0,
+    alert: alert,
+    active: true,
     facebook: facebook || null,
     google: google || null,
-    twitter: twitter || null,
-    lastchange: lastchange || null
+    twitter: twitter || null
   };
 };
 
@@ -35,71 +36,63 @@ User.prototype.getProperties = function() {
 };
 
 User.prototype.findById = function(iduser) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM users WHERE iduser = ?';
-    const parameters = [iduser];
-    db.executePromise(sql, parameters)
-      .then((result) => {
-        if (result.length === 0) {
-          const err = new Error('Not Found!');
-          err.status = 404;
-          return reject(err);
-        }
-        return resolve(new User(result[0]));
-      })
-      .catch((err) => reject(err));
-  });
+  return db.findOne({ iduser: iduser })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return new User(docs);
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 User.prototype.findByEmail = function(email) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM users WHERE email = ?';
-    const parameters = [email];
-    db.executePromise(sql, parameters)
-      .then((result) => {
-        if (result.length === 0) {
-          const err = new Error('Not Found!');
-          err.status = 404;
-          return reject(err);
-        }
-        return resolve(new User(result[0]));
-      })
-      .catch((err) => reject(err));
-  });
+  return db.findOne({ email: email })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return new User(docs);
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 User.prototype.findByFacebook = function(facebook) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM users WHERE facebook = ?';
-    const parameters = [facebook];
-    db.executePromise(sql, parameters)
-      .then((result) => {
-        if (result.length === 0) {
-          const err = new Error('Not Found!');
-          err.status = 404;
-          return reject(err);
-        }
-        return resolve(new User(result[0]));
-      })
-      .catch((err) => reject(err));
-  });
+  return db.findOne({ facebook: facebook })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return new User(docs);
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 User.prototype.findByGoogle = function(google) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM users WHERE google = ?';
-    const parameters = [google];
-    db.executePromise(sql, parameters)
-      .then((result) => {
-        if (result.length === 0) {
-          const err = new Error('Not Found!');
-          err.status = 404;
-          return reject(err);
-        }
-        return resolve(new User(result[0]));
-      })
-      .catch((err) => reject(err));
-  });
+  return db.findOne({ google: google })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return new User(docs);
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 User.prototype._preHashPassword = function(password) {
@@ -118,16 +111,17 @@ User.prototype.verifyPassword = function(password) {
       .then((result) => {
         if (result === true) {
           return resolve();
+        } else {
+          const err = new Error('Invalid password!');
+          return reject(err);
         }
-        const err = new Error('Invalid password!');
-        return reject(err);
       })
       .catch((err) => reject(err));
   });
 };
 
 User.prototype.setId = function() {
-  this.props.iduser = new Date().getTime();
+  this.props.iduser = Date.now();
 };
 
 User.prototype.setAutoPassword = function() {
@@ -135,77 +129,87 @@ User.prototype.setAutoPassword = function() {
 };
 
 User.prototype.create = function() {
-  return new Promise((resolve, reject) => {
-    this.hashPassword(this.props.passwd)
-      .then((hash) => {
-        this.props.passwd = hash;
-        this.props.active = 1;
-        this.props.createdon = new Date();
-        const fields = 'iduser, name, gender, birthdate, email, createdon, passwd, active, alert, facebook, google, twitter';
-        const sql = 'INSERT INTO users (' + fields + ') VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        const parameters = [this.props.iduser, this.props.name, this.props.gender, this.props.birthdate,
-                            this.props.email, this.props.createdon, this.props.passwd, this.props.active,
-                            this.props.alert, this.props.facebook, this.props.google, this.props.twitter];
-        return db.executePromise(sql, parameters);
-      })
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return this.hashPassword(this.props.passwd)
+    .then((hash) => {
+      this.props.passwd = hash;
+      this.props.active = true;
+      this.props.createdon = new Date();
+      return db.create(this.props);
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 User.prototype.update = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE users SET name = ?, gender = ?, birthdate = ?, alert = ? WHERE iduser = ?';
-    const parameters = [this.props.name, this.props.gender, this.props.birthdate, this.props.alert, this.props.iduser];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-
-  });
+  return db.findOneAndUpdate({ iduser: this.props.iduser }, {
+    name: this.props.name,
+    alert: this.props.alert
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 User.prototype.updateFacebook = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE users SET facebook = ? WHERE iduser = ?';
-    const parameters = [this.props.facebook, this.props.iduser];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.findOneAndUpdate({ iduser: this.props.iduser }, { facebook: this.props.facebook })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 User.prototype.updateGoogle = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE users SET google = ? WHERE iduser = ?';
-    const parameters = [this.props.google, this.props.iduser];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.findOneAndUpdate({ iduser: this.props.iduser }, { google: this.props.google })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 User.prototype.updatePassword = function() {
-  return new Promise((resolve, reject) => {
-    this.hashPassword(this.props.passwd)
-      .then((hash) => {
-        this.props.passwd = hash;
-        const sql = 'UPDATE users SET passwd = ? WHERE iduser = ?';
-        const parameters = [hash, this.props.iduser];
-        return db.executePromise(sql, parameters);
-      })
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return this.hashPassword(this.props.passwd)
+    .then((hash) => db.findOneAndUpdate({ iduser: this.props.iduser }, { passwd: hash }).lean().exec())
+    .catch((err) => {
+      throw err;
+    });
 };
 
 User.prototype.delete = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'DELETE FROM users WHERE iduser = ?';
-    const parameters = [this.props.iduser];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.findOneAndDelete({ iduser: this.props.iduser })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 module.exports = User;

@@ -1,26 +1,20 @@
 'use strict';
 
+const faker = require('faker');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
-const db = require('../../../models/database');
+const db = require('../../../models/account');
 const Account = require('../../../controllers/account');
+const Helper = require('../../helper/helper');
+const CustomErrors = require('../../../utils/errors');
 const sandbox = sinon.createSandbox();
 const expect = chai.expect;
-const dataEntryTest = {
-  iduser: 1,
-  idaccount: 2,
-  idtype: 3,
-  description: 4,
-  creditlimit: 5,
-  balance: 6,
-  openingdate: 7,
-  duedate: 8,
-  lastchange: 9
-};
+const dbMock = Helper.getMongoDbModelMock();
+const dbError = CustomErrors.HTTP.get404();
+const dataEntryTest = Helper.getFakeAccount();
 const dbEntryReturn = [dataEntryTest];
-const dbError = new Error('Test error');
-dbError.status = 404;
+const idAccountDoesNotExist = 9999999999;
 
 chai.use(chaiAsPromised);
 
@@ -33,15 +27,14 @@ describe('Account', () => {
     it('should get a new instance and set properties', () => {
       const account = new Account(dataEntryTest);
       expect(account).to.have.property('props');
-      expect(account.props.iduser).to.equal(1);
-      expect(account.props.idaccount).to.equal(2);
-      expect(account.props.idtype).to.equal(3);
-      expect(account.props.description).to.equal(4);
-      expect(account.props.creditlimit).to.equal(5);
-      expect(account.props.balance).to.equal(6);
-      expect(account.props.openingdate).to.equal(7);
-      expect(account.props.duedate).to.equal(8);
-      expect(account.props.lastchange).to.equal(9);
+      expect(account.props.iduser).to.equal(dataEntryTest.iduser);
+      expect(account.props.idaccount).to.equal(dataEntryTest.idaccount);
+      expect(account.props.idtype).to.equal(dataEntryTest.idtype);
+      expect(account.props.description).to.equal(dataEntryTest.description);
+      expect(account.props.creditlimit).to.equal(dataEntryTest.creditlimit);
+      expect(account.props.balance).to.equal(dataEntryTest.balance);
+      expect(account.props.openingdate).to.equal(dataEntryTest.openingdate);
+      expect(account.props.duedate).to.equal(dataEntryTest.duedate);
     });
   });
 
@@ -49,15 +42,14 @@ describe('Account', () => {
     it('should set properties for instance', () => {
       const account = new Account();
       account.setProperties(dataEntryTest);
-      expect(account.props.iduser).to.equal(1);
-      expect(account.props.idaccount).to.equal(2);
-      expect(account.props.idtype).to.equal(3);
-      expect(account.props.description).to.equal(4);
-      expect(account.props.creditlimit).to.equal(5);
-      expect(account.props.balance).to.equal(6);
-      expect(account.props.openingdate).to.equal(7);
-      expect(account.props.duedate).to.equal(8);
-      expect(account.props.lastchange).to.equal(9);
+      expect(account.props.iduser).to.equal(dataEntryTest.iduser);
+      expect(account.props.idaccount).to.equal(dataEntryTest.idaccount);
+      expect(account.props.idtype).to.equal(dataEntryTest.idtype);
+      expect(account.props.description).to.equal(dataEntryTest.description);
+      expect(account.props.creditlimit).to.equal(dataEntryTest.creditlimit);
+      expect(account.props.balance).to.equal(dataEntryTest.balance);
+      expect(account.props.openingdate).to.equal(dataEntryTest.openingdate);
+      expect(account.props.duedate).to.equal(dataEntryTest.duedate);
     });
   });
 
@@ -65,22 +57,21 @@ describe('Account', () => {
     it('should get properties from instance', () => {
       const account = new Account(dataEntryTest);
       const data = account.getProperties();
-      expect(data.iduser).to.equal(1);
-      expect(data.idaccount).to.equal(2);
-      expect(data.idtype).to.equal(3);
-      expect(data.description).to.equal(4);
-      expect(data.creditlimit).to.equal(5);
-      expect(data.balance).to.equal(6);
-      expect(data.openingdate).to.equal(7);
-      expect(data.duedate).to.equal(8);
-      expect(data.lastchange).to.equal(9);
+      expect(data.iduser).to.equal(dataEntryTest.iduser);
+      expect(data.idaccount).to.equal(dataEntryTest.idaccount);
+      expect(data.idtype).to.equal(dataEntryTest.idtype);
+      expect(data.description).to.equal(dataEntryTest.description);
+      expect(data.creditlimit).to.equal(dataEntryTest.creditlimit);
+      expect(data.balance).to.equal(dataEntryTest.balance);
+      expect(data.openingdate).to.equal(dataEntryTest.openingdate);
+      expect(data.duedate).to.equal(dataEntryTest.duedate);
     });
 
     it('should change data from #getProperties() and does not affect instance', () => {
       const account = new Account(dataEntryTest);
       const data = account.getProperties();
-      data.idaccount = 25;
-      expect(account.props.idaccount).to.equal(2)
+      data.idaccount = faker.finance.account();
+      expect(account.props.idaccount).to.equal(dataEntryTest.idaccount)
         .and.not.equal(data.idaccount);
     });
   });
@@ -91,16 +82,17 @@ describe('Account', () => {
     });
 
     it('should return all entries from DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
+      sandbox.stub(db, 'find').returns(dbMock);
       const account = new Account();
       return expect(account.getAll(dataEntryTest.iduser)).to.eventually.be.fulfilled
         .and.to.be.instanceOf(Object)
-        //.and.to.have.deep.property('[0].idaccount', 2);
-        .and.to.have.nested.property('[0].idaccount', 2);
+        .and.to.have.nested.property('[0].idaccount', dataEntryTest.idaccount);
     });
 
     it('should fail to return all entries from DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'find').returns(dbMock);
       const iduser = 'A';
       const account = new Account();
       return expect(account.getAll(iduser)).to.eventually.be.rejectedWith(Error)
@@ -114,17 +106,19 @@ describe('Account', () => {
     });
 
     it('should find an entry into DB by ID', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
+      sandbox.stub(db, 'findOne').returns(dbMock);
       const account = new Account();
       return expect(account.findById(dataEntryTest.iduser, dataEntryTest.idaccount)).to.eventually.be.fulfilled
         .and.to.be.instanceOf(Object)
-        .and.to.have.nested.property('props.idaccount', 2);
+        .and.to.have.nested.property('props.idaccount', dataEntryTest.idaccount);
     });
 
     it('should fail to find an entry into DB by ID', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOne').returns(dbMock);
       const iduser = 'A';
-      const idaccount = 'B';
+      const idaccount = idAccountDoesNotExist;
       const account = new Account();
       return expect(account.findById(iduser, idaccount)).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -132,61 +126,42 @@ describe('Account', () => {
   });
 
   describe('#create()', () => {
-    /*after((done) => {
-      const account = new Account(dataEntryTest);
-      account.delete()
-        .then(() => done())
-        .catch((err) => done(err));
-    });*/
-
     afterEach(() => {
       sandbox.restore();
     });
 
     it('should create a new entry into DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(db, 'create').resolves(dbEntryReturn);
       const account = new Account(dataEntryTest);
       return expect(account.create()).to.eventually.be.fulfilled;
     });
 
     it('should fail when create a new entry into DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(db, 'create').rejects(dbError);
       const account = new Account(dataEntryTest);
       return expect(account.create()).to.eventually.be.rejectedWith(Error);
     });
   });
 
   describe('#update()', () => {
-    /*before((done) => {
-      const account = new Account(dataEntryTest);
-      account.create()
-        .then(() => done())
-        .catch((err) => done(err));
-    });
-
-    after((done) => {
-      const account = new Account(dataEntryTest);
-      account.delete()
-        .then(() => done())
-        .catch((err) => done(err));
-    });*/
-
     afterEach(() => {
       sandbox.restore();
     });
 
     it('should update an entry into DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const account = new Account(dataEntryTest);
       account.props.description = 'TEST';
       return expect(account.update()).to.eventually.be.fulfilled;
     });
 
     it('should fail when update an entry into DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const account = new Account({
         iduser: 'A',
-        idaccount: 'B'
+        idaccount: idAccountDoesNotExist
       });
       return expect(account.update()).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -194,31 +169,25 @@ describe('Account', () => {
   });
 
   describe('#delete()', () => {
-    /*before((done) => {
-      const account = new Account(dataEntryTest);
-      account.create()
-        .then(() => done())
-        .catch((err) => done(err));
-    });*/
-
     afterEach(() => {
       sandbox.restore();
     });
 
     it('should delete an entry from DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
+      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
       const account = new Account(dataEntryTest);
       return expect(account.delete()).to.eventually.be.fulfilled;
     });
 
     it('should fail when delete an entry from DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
       const account = new Account({
         iduser: 'A',
-        idaccount: 'B'
+        idaccount: idAccountDoesNotExist
       });
-      return expect(account.delete()).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
+      return expect(account.delete()).to.eventually.be.rejectedWith(Error);
     });
   });
 });

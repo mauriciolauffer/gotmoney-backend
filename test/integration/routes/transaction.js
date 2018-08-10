@@ -2,60 +2,19 @@
 
 const sinon = require('sinon');
 const supertest = require('supertest');
-const expect = require('chai').expect;
+const { expect } = require('chai');
 const app = require('../../../app');
 const Account = require('../../../controllers/account');
 const User = require('../../../controllers/user');
-const mock_middleware = require('../../mock_middleware');
+const mock_middleware = require('../../helper/mock_middleware');
+const Helper = require('../../helper/helper');
 const sandbox = sinon.createSandbox();
 const agent = supertest.agent(app);
-const payloadBase = {
-  iduser: 1,
-  idtransaction: 1,
-  idaccount: 1,
-  idparent: null,
-  idstatus: 1,
-  description: 'Node Unit Test',
-  instalment: '1/1',
-  amount: 123.45,
-  type: 'D',
-  startdate: new Date(),
-  duedate: new Date(),
-  tag: null,
-  origin: 'W',
-  lastchange: 14
-};
-const payloadBaseAccount = {
-  iduser: 1,
-  idaccount: 1,
-  idtype: 3,
-  description: 'Node Unit Test',
-  creditlimit: 5,
-  balance: 6,
-  openingdate: new Date().toJSON(),
-  duedate: 8,
-  lastchange: 9
-};
-const userPayload = {
-  iduser: 1,
-  name: 'Node Unit Test',
-  gender: 'F',
-  birthdate: new Date().toJSON(),
-  email: 'node@test.com',
-  createdon: new Date().toJSON(),
-  passwd: '123456'
-};
-
-function getCSRFToken() {
-  return new Promise((resolve, reject) => {
-    agent.get('/api/session/token')
-      .expect(200)
-      .end((err, res) => {
-        if (err) return reject(err);
-        resolve(res.body.csrfToken);
-      });
-  });
-}
+const userPayload = Helper.getFakeUser();
+const payloadBaseAccount = Helper.getFakeAccount();
+const payloadBase = Helper.getFakeTransaction();
+payloadBase.idaccount = payloadBaseAccount.idaccount;
+const idTransactionDoesNotExist = 99999999995555;
 
 describe('Routing Transaction', () => {
   before(() => {
@@ -65,8 +24,7 @@ describe('Routing Transaction', () => {
       .then(() => {
         const account = new Account(payloadBaseAccount);
         return account.create();
-      })
-      .catch((err) => err);
+      });
   });
 
   after(() => {
@@ -76,14 +34,13 @@ describe('Routing Transaction', () => {
       .then(() => {
         const account = new Account(payloadBaseAccount);
         return account.delete();
-      })
-      .catch((err) => err);
+      });
   });
 
   describe('POST /api/transaction', () => {
     it('should create transaction', (done) => {
       const payload = {data: [payloadBase]};
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/transaction')
             .send(payload)
@@ -98,7 +55,7 @@ describe('Routing Transaction', () => {
     it('should fail when create transaction', (done) => {
       const payload = {data: [Object.assign({}, payloadBase)]};
       payload.data[0].description = null;
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/transaction')
             .send(payload)
@@ -118,7 +75,7 @@ describe('Routing Transaction', () => {
     });
 
     it('should fail when create transaction, payload is not an Array', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.post('/api/transaction')
             .send({})
@@ -139,7 +96,7 @@ describe('Routing Transaction', () => {
   });
 
   describe('GET /api/transaction', () => {
-    it('should get categories', (done) => {
+    it('should get transactions', (done) => {
       agent.get('/api/transaction')
         .set('Accept', 'application/json')
         .expect('Content-Type', /application\/json/)
@@ -155,8 +112,8 @@ describe('Routing Transaction', () => {
   describe('PUT /api/transaction/:id', () => {
     it('should update transaction', (done) => {
       const payload = Object.assign({}, payloadBase);
-      payload.description += new Date().getTime();
-      getCSRFToken()
+      payload.description += Date.now();
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/transaction/' + payload.idtransaction)
             .send(payload)
@@ -171,7 +128,7 @@ describe('Routing Transaction', () => {
     it('should fail when update transaction', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.description = null;
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/transaction/' + payload.idtransaction)
             .send(payload)
@@ -193,7 +150,7 @@ describe('Routing Transaction', () => {
     it('should not find transaction to update', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.idtransaction = 999999999;
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/transaction/' + payload.idtransaction)
             .send(payload)
@@ -208,7 +165,7 @@ describe('Routing Transaction', () => {
 
   describe('DELETE /api/transaction/:id', () => {
     it('should delete transaction', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.delete('/api/transaction/' + payloadBase.idtransaction)
             .set('x-csrf-token', csrfToken)
@@ -220,9 +177,9 @@ describe('Routing Transaction', () => {
     });
 
     it('should not find transaction to delete', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
-          agent.delete('/api/transaction/' + 'A')
+          agent.delete('/api/transaction/' + idTransactionDoesNotExist)
             .set('x-csrf-token', csrfToken)
             .set('Accept', 'application/json')
             .expect('Content-Type', /application\/json/)

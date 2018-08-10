@@ -2,37 +2,15 @@
 
 const sinon = require('sinon');
 const supertest = require('supertest');
-const expect = require('chai').expect;
+const { expect } = require('chai');
 const app = require('../../../app');
 const User = require('../../../controllers/user');
-const mock_middleware = require('../../mock_middleware');
+const mock_middleware = require('../../helper/mock_middleware');
+const Helper = require('../../helper/helper');
 const sandbox = sinon.createSandbox();
 const agent = supertest.agent(app);
-const payloadBase = {
-  iduser: 1,
-  name: 'Node Unit Test',
-  gender: 'F',
-  birthdate: new Date().toJSON(),
-  email: 'node@test.com',
-  createdon: new Date().toJSON(),
-  passwd: '123456',
-  alert: true,
-  facebook: null,
-  google: null,
-  twitter: null,
-  lastchange: null
-};
-
-function getCSRFToken() {
-  return new Promise((resolve, reject) => {
-    agent.get('/api/session/token')
-      .expect(200)
-      .end((err, res) => {
-        if (err) return reject(err);
-        resolve(res.body.csrfToken);
-      });
-  });
-}
+const payloadBase = Helper.getFakeUser();
+const idUserDoesNotExist = 99999999995555;
 
 describe('Routing User', () => {
   before(() => {
@@ -59,13 +37,20 @@ describe('Routing User', () => {
           done();
         });
     });
+
+    it('should get user', () => {
+      agent.get('/api/user/' + idUserDoesNotExist)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /application\/json/)
+        .expect(404);
+    });
   });
 
   describe('PUT /api/user/:id', () => {
     it('should update user, no password', (done) => {
       const payload = Object.assign({}, payloadBase);
-      payload.name += new Date().getTime();
-      getCSRFToken()
+      payload.name += Date.now();
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/user/' + payload.iduser)
             .send(payload)
@@ -80,10 +65,10 @@ describe('Routing User', () => {
 
     it('should update user and password', (done) => {
       const payload = Object.assign({}, payloadBase);
-      payload.name += new Date().getTime();
+      payload.name += Date.now();
       payload.passwdold = payload.passwd;
-      payload.passwd = '1234567890';
-      getCSRFToken()
+      payload.passwd = payload.passwd + Date.now();
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/user/' + payload.iduser)
             .send(payload)
@@ -99,7 +84,7 @@ describe('Routing User', () => {
     it('should fail when update user', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.name = null;
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/user/' + payload.iduser)
             .send(payload)
@@ -119,10 +104,9 @@ describe('Routing User', () => {
 
     it('should fail update password, old password invalid', (done) => {
       const payload = Object.assign({}, payloadBase);
-      payload.name += new Date().getTime();
-      payload.passwdold = '1234567890XXX';
-      payload.passwd = 'A123456B';
-      getCSRFToken()
+      payload.passwdold = payload.passwd + Date.now();
+      payload.passwd = payload.passwd + Date.now() + Date.now();
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/user/' + payload.iduser)
             .send(payload)
@@ -142,10 +126,9 @@ describe('Routing User', () => {
 
     it('should fail update password, new password invalid', (done) => {
       const payload = Object.assign({}, payloadBase);
-      payload.name += new Date().getTime();
       payload.passwdold = payload.passwd;
       payload.passwd = 'A';
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/user/' + payload.iduser)
             .send(payload)

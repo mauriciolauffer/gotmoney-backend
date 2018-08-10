@@ -1,30 +1,20 @@
 'use strict';
 
+const faker = require('faker');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 const bcrypt = require('bcryptjs');
-const db = require('../../../models/database');
+const db = require('../../../models/user');
 const User = require('../../../controllers/user');
+const Helper = require('../../helper/helper');
+const CustomErrors = require('../../../utils/errors');
 const expect = chai.expect;
 const sandbox = sinon.createSandbox();
-const dataEntryTest = {
-  iduser: 9999999999,
-  name: 2,
-  gender: 3,
-  birthdate: 4,
-  email: 5,
-  createdon: 6,
-  passwd: 7,
-  alert: 1,
-  facebook: 9,
-  google: 10,
-  twitter: 11,
-  lastchange: 12
-};
+const dbMock = Helper.getMongoDbModelMock();
+const dbError = CustomErrors.HTTP.get404();
+const dataEntryTest = Helper.getFakeUser();
 const dbEntryReturn = [dataEntryTest];
-const dbError = new Error('Test error');
-dbError.status = 404;
 
 chai.use(chaiAsPromised);
 
@@ -37,18 +27,16 @@ describe('User', () => {
     it('should get a new instance and set properties', () => {
       const user = new User(dataEntryTest);
       expect(user).to.have.property('props');
-      expect(user.props.iduser).to.equal(9999999999);
-      expect(user.props.name).to.equal(2);
-      expect(user.props.gender).to.equal(3);
-      expect(user.props.birthdate).to.equal(4);
-      expect(user.props.email).to.equal(5);
-      expect(user.props.createdon).to.equal(6);
-      expect(user.props.passwd).to.equal(7);
-      expect(user.props.alert).to.equal(1);
-      expect(user.props.facebook).to.equal(9);
-      expect(user.props.google).to.equal(10);
-      expect(user.props.twitter).to.equal(11);
-      expect(user.props.lastchange).to.equal(12);
+      expect(user.props.iduser).to.equal(dataEntryTest.iduser);
+      expect(user.props.name).to.equal(dataEntryTest.name);
+      expect(user.props.email).to.equal(dataEntryTest.email);
+      expect(user.props.createdon).to.equal(dataEntryTest.createdon);
+      expect(user.props.passwd).to.equal(dataEntryTest.passwd);
+      expect(user.props.alert).to.equal(dataEntryTest.alert);
+      expect(user.props.active).to.equal(dataEntryTest.active);
+      expect(user.props.facebook).to.equal(dataEntryTest.facebook);
+      expect(user.props.google).to.equal(dataEntryTest.google);
+      expect(user.props.twitter).to.equal(dataEntryTest.twitter);
     });
   });
 
@@ -56,18 +44,16 @@ describe('User', () => {
     it('should set properties for instance', () => {
       const user = new User();
       user.setProperties(dataEntryTest);
-      expect(user.props.iduser).to.equal(9999999999);
-      expect(user.props.name).to.equal(2);
-      expect(user.props.gender).to.equal(3);
-      expect(user.props.birthdate).to.equal(4);
-      expect(user.props.email).to.equal(5);
-      expect(user.props.createdon).to.equal(6);
-      expect(user.props.passwd).to.equal(7);
-      expect(user.props.alert).to.equal(1);
-      expect(user.props.facebook).to.equal(9);
-      expect(user.props.google).to.equal(10);
-      expect(user.props.twitter).to.equal(11);
-      expect(user.props.lastchange).to.equal(12);
+      expect(user.props.iduser).to.equal(dataEntryTest.iduser);
+      expect(user.props.name).to.equal(dataEntryTest.name);
+      expect(user.props.email).to.equal(dataEntryTest.email);
+      expect(user.props.createdon).to.equal(dataEntryTest.createdon);
+      expect(user.props.passwd).to.equal(dataEntryTest.passwd);
+      expect(user.props.alert).to.equal(dataEntryTest.alert);
+      expect(user.props.active).to.equal(dataEntryTest.active);
+      expect(user.props.facebook).to.equal(dataEntryTest.facebook);
+      expect(user.props.google).to.equal(dataEntryTest.google);
+      expect(user.props.twitter).to.equal(dataEntryTest.twitter);
     });
   });
 
@@ -75,25 +61,23 @@ describe('User', () => {
     it('should get properties from instance', () => {
       const user = new User(dataEntryTest);
       const data = user.getProperties();
-      expect(data.iduser).to.equal(9999999999);
-      expect(data.name).to.equal(2);
-      expect(data.gender).to.equal(3);
-      expect(data.birthdate).to.equal(4);
-      expect(data.email).to.equal(5);
-      expect(data.createdon).to.equal(6);
+      expect(data.iduser).to.equal(dataEntryTest.iduser);
+      expect(data.name).to.equal(dataEntryTest.name);
+      expect(data.email).to.equal(dataEntryTest.email);
+      expect(data.createdon).to.equal(dataEntryTest.createdon);
       expect(data.passwd).to.not.exist;
-      expect(data.alert).to.equal(1);
-      expect(data.facebook).to.equal(9);
-      expect(data.google).to.equal(10);
-      expect(data.twitter).to.equal(11);
-      expect(data.lastchange).to.equal(12);
+      expect(data.alert).to.equal(dataEntryTest.alert);
+      expect(data.active).to.equal(dataEntryTest.active);
+      expect(data.facebook).to.equal(dataEntryTest.facebook);
+      expect(data.google).to.equal(dataEntryTest.google);
+      expect(data.twitter).to.equal(dataEntryTest.twitter);
     });
 
     it('should change data from #getProperties() and does not affect instance', () => {
       const user = new User(dataEntryTest);
       const data = user.getProperties();
-      data.name = 25;
-      expect(user.props.name).to.equal(2)
+      data.name = faker.name.findName();
+      expect(user.props.name).to.equal(dataEntryTest.name)
         .and.not.equal(data.name);
     });
   });
@@ -141,7 +125,7 @@ describe('User', () => {
 
     it('should fail when compare password to hash', () => {
       const user = new User();
-      const password = 'A';
+      const password = dataEntryTest.passwd + Date.now();
       user.props.passwd = passwordHash;
       return expect(user.verifyPassword(password)).to.eventually.be.rejectedWith(Error);
     });
@@ -175,25 +159,19 @@ describe('User', () => {
     });
 
     it('should find an entry into DB by ID', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
-      const iduser = 3;
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn[0]);
+      sandbox.stub(db, 'findOne').returns(dbMock);
+      const iduser = dataEntryTest.iduser;
       const user = new User();
       return expect(user.findById(iduser)).to.eventually.be.fulfilled
         .and.to.be.an('object')
         .and.to.have.nested.property('props.iduser', dataEntryTest.iduser);
     });
 
-    it('should fail to find an entry into DB by ID', () => {
-      sandbox.stub(db, 'executePromise').resolves([]);
-      const iduser = 'A';
-      const user = new User();
-      return expect(user.findById(iduser)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
-    });
-
     it('should fail to find an entry into DB by ID for error', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
-      const iduser = 'A';
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOne').returns(dbMock);
+      const iduser = dataEntryTest.iduser + Date.now();
       const user = new User();
       return expect(user.findById(iduser)).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -206,25 +184,19 @@ describe('User', () => {
     });
 
     it('should find an entry into DB by email', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
-      const email = 'teste@hotm.com';
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn[0]);
+      sandbox.stub(db, 'findOne').returns(dbMock);
+      const email = dataEntryTest.email;
       const user = new User();
       return expect(user.findByEmail(email)).to.eventually.be.fulfilled
         .and.to.be.an('object')
         .and.to.have.nested.property('props.iduser', dataEntryTest.iduser);
     });
 
-    it('should fail to find an entry into DB by email', () => {
-      sandbox.stub(db, 'executePromise').resolves([]);
-      const email = 'A';
-      const user = new User();
-      return expect(user.findByEmail(email)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
-    });
-
     it('should fail to find an entry into DB by email for error', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
-      const email = 'A';
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOne').returns(dbMock);
+      const email = dataEntryTest.email + Date.now();
       const user = new User();
       return expect(user.findByEmail(email)).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -237,7 +209,8 @@ describe('User', () => {
     });
 
     it('should find an entry into DB by Facebook', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn[0]);
+      sandbox.stub(db, 'findOne').returns(dbMock);
       const facebook = dataEntryTest.facebook;
       const user = new User();
       return expect(user.findByFacebook(facebook)).to.eventually.be.fulfilled
@@ -245,17 +218,10 @@ describe('User', () => {
         .and.to.have.nested.property('props.iduser', dataEntryTest.iduser);
     });
 
-    it('should fail to find an entry into DB by Facebook', () => {
-      sandbox.stub(db, 'executePromise').resolves([]);
-      const facebook = 'A';
-      const user = new User();
-      return expect(user.findByFacebook(facebook)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
-    });
-
     it('should fail to find an entry into DB by Facebook for error', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
-      const facebook = 'A';
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOne').returns(dbMock);
+      const facebook = dataEntryTest.facebook + Date.now();
       const user = new User();
       return expect(user.findByFacebook(facebook)).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -268,7 +234,8 @@ describe('User', () => {
     });
 
     it('should find an entry into DB by Google', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn[0]);
+      sandbox.stub(db, 'findOne').returns(dbMock);
       const google = dataEntryTest.google;
       const user = new User();
       return expect(user.findByGoogle(google)).to.eventually.be.fulfilled
@@ -276,17 +243,10 @@ describe('User', () => {
         .and.to.have.nested.property('props.iduser', dataEntryTest.iduser);
     });
 
-    it('should fail to find an entry into DB by Google', () => {
-      sandbox.stub(db, 'executePromise').resolves([]);
-      const google = 'A';
-      const user = new User();
-      return expect(user.findByGoogle(google)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
-    });
-
     it('should fail to find an entry into DB by Google for error', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
-      const google = 'A';
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOne').returns(dbMock);
+      const google = dataEntryTest.google + Date.now();
       const user = new User();
       return expect(user.findByGoogle(google)).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -294,60 +254,41 @@ describe('User', () => {
   });
 
   describe('#create()', () => {
-    /*after((done) => {
-     const user = new User(dataEntryTest);
-     user.delete()
-     .then(() => done())
-     .catch((err) => done(err));
-     });*/
-
     afterEach(() => {
       sandbox.restore();
     });
 
     it('should create a new entry into DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(db, 'create').resolves(dbEntryReturn);
       const user = new User(dataEntryTest);
       return expect(user.create()).to.eventually.be.fulfilled;
     });
 
     it('should fail when create a new entry into DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(db, 'create').rejects(dbError);
       const user = new User(dataEntryTest);
       return expect(user.create()).to.eventually.be.rejectedWith(Error);
     });
   });
 
   describe('#update()', () => {
-    /*before((done) => {
-     const user = new User(dataEntryTest);
-     user.create()
-     .then(() => done())
-     .catch((err) => done(err));
-     });
-
-     after((done) => {
-     const user = new User(dataEntryTest);
-     user.delete()
-     .then(() => done())
-     .catch((err) => done(err));
-     });*/
-
     afterEach(() => {
       sandbox.restore();
     });
 
     it('should update an entry into DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const user = new User(dataEntryTest);
       user.props.name = 'TEST';
       return expect(user.update()).to.eventually.be.fulfilled;
     });
 
     it('should fail when update an entry into DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const user = new User({
-        iduser: 'A'
+        iduser: dataEntryTest.iduser + Date.now()
       });
       return expect(user.update()).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -360,16 +301,18 @@ describe('User', () => {
     });
 
     it('should update Facebook field into DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const user = new User(dataEntryTest);
       return expect(user.updateFacebook()).to.eventually.be.fulfilled;
     });
 
     it('should fail when update Facebook field into DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const user = new User({
-        iduser: 'A',
-        facebook: 123
+        iduser: dataEntryTest.iduser + Date.now(),
+        facebook: dataEntryTest.facebook
       });
       return expect(user.updateFacebook()).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -382,16 +325,18 @@ describe('User', () => {
     });
 
     it('should update Google field into DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const user = new User(dataEntryTest);
       return expect(user.updateGoogle()).to.eventually.be.fulfilled;
     });
 
     it('should fail when update Google field into DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const user = new User({
-        iduser: 'A',
-        google: 123
+        iduser: dataEntryTest.iduser + Date.now(),
+        google: dataEntryTest.google
       });
       return expect(user.updateGoogle()).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -403,17 +348,19 @@ describe('User', () => {
       sandbox.restore();
     });
 
-    it('should update Google field into DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+    it('should update Password field into DB', () => {
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const user = new User(dataEntryTest);
       return expect(user.updatePassword()).to.eventually.be.fulfilled;
     });
 
-    it('should fail when update Google field into DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+    it('should fail when update Password field into DB', () => {
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
       const user = new User({
-        iduser: 'A',
-        passwd: 12345
+        iduser: dataEntryTest.iduser + Date.now(),
+        passwd: dataEntryTest.passwd
       });
       return expect(user.updatePassword()).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);
@@ -421,27 +368,22 @@ describe('User', () => {
   });
 
   describe('#delete()', () => {
-    /*before((done) => {
-     const user = new User(dataEntryTest);
-     user.create()
-     .then(() => done())
-     .catch((err) => done(err));
-     });*/
-
     afterEach(() => {
       sandbox.restore();
     });
 
     it('should delete an entry from DB', () => {
-      sandbox.stub(db, 'executePromise').resolves(dbEntryReturn);
+      sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
+      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
       const user = new User(dataEntryTest);
       return expect(user.delete()).to.eventually.be.fulfilled;
     });
 
     it('should fail when delete an entry from DB', () => {
-      sandbox.stub(db, 'executePromise').rejects(dbError);
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
       const user = new User({
-        iduser: 'A'
+        iduser: dataEntryTest.iduser + Date.now()
       });
       return expect(user.delete()).to.eventually.be.rejectedWith(Error)
         .and.to.have.property('status', 404);

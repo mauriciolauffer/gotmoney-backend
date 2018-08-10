@@ -1,17 +1,17 @@
 'use strict';
 
-const db = require('./../models/database');
+const db = require('../models/category');
+const CustomErrors = require('../utils/errors');
 
 function Category(data = {}) {
   this.setProperties(data);
 }
 
-Category.prototype.setProperties = function({idcategory, iduser, description, lastchange}) {
+Category.prototype.setProperties = function({idcategory, iduser, description}) {
   this.props = {
     idcategory: idcategory,
     iduser: iduser,
-    description: description,
-    lastchange: lastchange
+    description: description
   };
 };
 
@@ -20,53 +20,83 @@ Category.prototype.getProperties = function() {
 };
 
 Category.prototype.findById = function(iduser, idcategory) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM categories WHERE idcategory = ? AND iduser = ?';
-    const parameters = [idcategory, iduser];
-    db.executePromise(sql, parameters)
-      .then((result) => resolve(new Category(result[0])))
-      .catch((err) => reject(err));
-  });
+  return db.findOne({
+    iduser: iduser,
+    idcategory: idcategory
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return new Category(docs[0]);
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Category.prototype.getAll = function(iduser) {
-  return new Promise((resolve, reject) => {
-    const sql = 'SELECT * FROM categories WHERE iduser = ? ORDER BY description';
-    const parameters = [iduser];
-    db.executePromise(sql, parameters)
-      .then((result) => resolve(result))
-      .catch((err) => reject(err));
-  });
+  return db.find({ iduser: iduser })
+    .sort({ description: 1 })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Category.prototype.create = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'INSERT INTO categories (idcategory, iduser, description) VALUES (?, ?, ?)';
-    const parameters = [this.props.idcategory, this.props.iduser, this.props.description];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.create(this.props)
+    .then((docs) => docs)
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Category.prototype.update = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'UPDATE categories SET description = ? WHERE idcategory = ? AND iduser = ?';
-    const parameters = [this.props.description, this.props.idcategory, this.props.iduser];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.findOneAndUpdate({
+    iduser: this.props.iduser,
+    idcategory: this.props.idcategory
+  }, {
+    description: this.props.description
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 Category.prototype.delete = function() {
-  return new Promise((resolve, reject) => {
-    const sql = 'DELETE FROM categories WHERE idcategory = ? AND iduser = ?';
-    const parameters = [this.props.idcategory, this.props.iduser];
-    db.executePromise(sql, parameters)
-      .then(() => resolve())
-      .catch((err) => reject(err));
-  });
+  return db.findOneAndDelete({
+    iduser: this.props.iduser,
+    idcategory: this.props.idcategory
+  })
+    .lean().exec()
+    .then((docs) => {
+      if (docs) {
+        return docs;
+      } else {
+        throw CustomErrors.HTTP.get404();
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
 };
 
 module.exports = Category;

@@ -2,62 +2,33 @@
 
 const sinon = require('sinon');
 const supertest = require('supertest');
-const expect = require('chai').expect;
+const { expect } = require('chai');
 const app = require('../../../app');
 const User = require('../../../controllers/user');
-const mock_middleware = require('../../mock_middleware');
+const mock_middleware = require('../../helper/mock_middleware');
+const Helper = require('../../helper/helper');
 const sandbox = sinon.createSandbox();
 const agent = supertest.agent(app);
-const payloadBase = {
-  iduser: 1,
-  idaccount: 1,
-  idtype: 3,
-  description: 'Node Unit Test',
-  creditlimit: 5,
-  balance: 6,
-  openingdate: new Date().toJSON(),
-  duedate: 8,
-  lastchange: 9
-};
-const userPayload = {
-  iduser: 1,
-  name: 'Node Unit Test',
-  gender: 'F',
-  birthdate: new Date().toJSON(),
-  email: 'node@test.com',
-  createdon: new Date().toJSON(),
-  passwd: '123456'
-};
-
-function getCSRFToken() {
-  return new Promise((resolve, reject) => {
-    agent.get('/api/session/token')
-      .expect(200)
-      .end((err, res) => {
-        if (err) return reject(err);
-        resolve(res.body.csrfToken);
-      });
-  });
-}
-
-//for (let i = 0; i < 5; i++) {
+const userPayload = Helper.getFakeUser();
+const payloadBase = Helper.getFakeAccount();
+const idAccountDoesNotExist = 9999999999;
 
 describe('Routing Account', () => {
   before(() => {
     sandbox.stub(mock_middleware.getMiddleware('authenticate'), 'handle').callsFake(mock_middleware.authenticate);
     const user = new User(userPayload);
-    return user.create().then(() => true).catch((err) => err);
+    return user.create();
   });
 
   after(() => {
     sandbox.restore();
     const user = new User(userPayload);
-    return user.delete().then(() => true).catch((err) => err);
+    return user.delete();
   });
 
   describe('POST /api/account', () => {
     it('should create account', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           return agent.post('/api/account')
             .send(payloadBase)
@@ -73,7 +44,7 @@ describe('Routing Account', () => {
     it('should fail when create account', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.description = null;
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           return agent.post('/api/account')
             .send(payload)
@@ -108,8 +79,8 @@ describe('Routing Account', () => {
   describe('PUT /api/account/:id', () => {
     it('should update account', (done) => {
       const payload = Object.assign({}, payloadBase);
-      payload.description += new Date().getTime();
-      getCSRFToken()
+      payload.description += Date.now();
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/account/' + payload.idaccount)
             .send(payload)
@@ -127,7 +98,7 @@ describe('Routing Account', () => {
     it('should fail when update account', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.description = null;
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/account/' + payload.idaccount)
             .send(payload)
@@ -147,8 +118,8 @@ describe('Routing Account', () => {
 
     it('should not find account to update', (done) => {
       const payload = Object.assign({}, payloadBase);
-      payload.idaccount = 999999999;
-      getCSRFToken()
+      payload.idaccount = idAccountDoesNotExist;
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.put('/api/account/' + payload.idaccount)
             .send(payload)
@@ -166,7 +137,7 @@ describe('Routing Account', () => {
 
   describe('DELETE /api/account/:id', () => {
     it('should delete account', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
           agent.delete('/api/account/' + payloadBase.idaccount)
             .set('x-csrf-token', csrfToken)
@@ -181,9 +152,9 @@ describe('Routing Account', () => {
     });
 
     it('should not find account to delete', (done) => {
-      getCSRFToken()
+      Helper.getCSRFToken(agent)
         .then((csrfToken) => {
-          agent.delete('/api/account/' + 'A')
+          agent.delete('/api/account/' + idAccountDoesNotExist)
             .set('x-csrf-token', csrfToken)
             .set('Accept', 'application/json')
             .expect('Content-Type', /application\/json/)
@@ -196,4 +167,3 @@ describe('Routing Account', () => {
     });
   });
 });
-//}
