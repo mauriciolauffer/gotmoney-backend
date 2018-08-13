@@ -1,12 +1,15 @@
 'use strict';
 
 const faker = require('faker');
-const IDUSER = 9999999999;
+const ID_ACCOUNT = 9999999999;
+const ID_CATEGORY = 9999999999;
+const ID_TRANSACTION = 9999999999;
+const ID_USER = 9999999999;
 const Helper = {};
 
 Helper.getFakeUser = function() {
   return {
-    iduser: IDUSER,
+    iduser: ID_USER,
     name: faker.name.findName(),
     email: faker.internet.email(),
     createdon: faker.date.past().toJSON(),
@@ -21,8 +24,8 @@ Helper.getFakeUser = function() {
 
 Helper.getFakeAccount = function() {
   return {
-    iduser: IDUSER,
-    idaccount: parseInt(faker.finance.account(), 10),
+    iduser: ID_USER,
+    idaccount: ID_ACCOUNT,
     idtype: faker.random.number(),
     description: faker.finance.accountName().substring(0, 45),
     creditlimit: parseFloat(faker.finance.amount()),
@@ -43,17 +46,17 @@ Helper.getFakeAccountType = function() {
 
 Helper.getFakeCategory = function() {
   return {
-    iduser: IDUSER,
-    idcategory: faker.random.number(),
+    iduser: ID_USER,
+    idcategory: ID_CATEGORY,
     description: faker.finance.accountName()
   };
 };
 
 Helper.getFakeTransaction = function() {
   return {
-    iduser: IDUSER,
-    idtransaction: faker.random.number(),
-    idaccount: parseInt(faker.finance.account(), 10),
+    iduser: ID_USER,
+    idtransaction: ID_TRANSACTION,
+    idaccount: ID_ACCOUNT,
     idparent: faker.random.number(),
     idstatus: 5,
     description: faker.lorem.words(),

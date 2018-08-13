@@ -7,11 +7,10 @@ const sinon = require('sinon');
 const db = require('../../../models/category');
 const Category = require('../../../controllers/category');
 const Helper = require('../../helper/helper');
-const CustomErrors = require('../../../utils/errors');
 const expect = chai.expect;
 const sandbox = sinon.createSandbox();
 const dbMock = Helper.getMongoDbModelMock();
-const dbError = CustomErrors.HTTP.get404();
+const dbError = new Error();
 const dataEntryTest = Helper.getFakeCategory();
 const dbEntryReturn = [dataEntryTest];
 
@@ -61,117 +60,146 @@ describe('Category', () => {
   });
 
   describe('#getAll()', () => {
+    beforeEach(() => {
+      sandbox.stub(db, 'find').returns(dbMock);
+      this._category = new Category();
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._category = null;
     });
 
     it('should return all entries from DB', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'find').returns(dbMock);
-      const category = new Category();
-      return expect(category.getAll(dataEntryTest.iduser)).to.eventually.be.fulfilled
-        .and.to.be.instanceOf(Object)
+      return expect(this._category.getAll(dataEntryTest.iduser)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Array)
+        .and.to.have.lengthOf(1)
         .and.to.have.nested.property('[0].idcategory', dataEntryTest.idcategory);
+    });
+
+    it('should return no entries, empty array, from DB', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
+      return expect(this._category.getAll(dataEntryTest.iduser)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Array)
+        .and.to.have.lengthOf(0);
     });
 
     it('should fail to return all entries from DB', () => {
       sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'find').returns(dbMock);
-      const iduser = 'A';
-      const category = new Category();
-      return expect(category.getAll(iduser)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
+      return expect(this._category.getAll(dataEntryTest.iduser)).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 
   describe('#findByID()', () => {
+    beforeEach(() => {
+      sandbox.stub(db, 'findOne').returns(dbMock);
+      this._category = new Category();
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._category = null;
     });
 
     it('should find an entry into DB by ID', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'findOne').returns(dbMock);
-      const category = new Category();
-      return expect(category.findById(dataEntryTest.iduser, dataEntryTest.idcategory)).to.eventually.be.fulfilled
-        .and.to.be.instanceOf(Object)
+      return expect(this._category.findById(dataEntryTest.iduser, dataEntryTest.idcategory)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Category)
         .and.to.have.nested.property('props.idcategory', dataEntryTest.idcategory);
+    });
+
+    it('should NOT find any entry into DB by ID', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
+      return expect(this._category.findById(dataEntryTest.iduser, dataEntryTest.idcategory)).to.eventually.be.rejectedWith(Error)
+        .and.to.have.property('status', 404);
     });
 
     it('should fail to find an entry into DB by ID', () => {
       sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'findOne').returns(dbMock);
-      const iduser = 'A';
-      const idcategory = 'B';
-      const category = new Category();
-      return expect(category.findById(iduser, idcategory)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
+      return expect(this._category.findById(dataEntryTest.iduser, dataEntryTest.idcategory)).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 
   describe('#create()', () => {
+    beforeEach(() => {
+      this._category = new Category(dataEntryTest);
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._category = null;
     });
 
     it('should create a new entry into DB', () => {
       sandbox.stub(db, 'create').resolves(dbEntryReturn);
-      const category = new Category(dataEntryTest);
-      return expect(category.create()).to.eventually.be.fulfilled;
+      return expect(this._category.create()).to.eventually.be.fulfilled;
     });
 
     it('should fail when create a new entry into DB', () => {
       sandbox.stub(db, 'create').rejects(dbError);
-      const category = new Category(dataEntryTest);
-      return expect(category.create()).to.eventually.be.rejectedWith(Error);
+      return expect(this._category.create()).to.eventually.be.rejectedWith(Error);
     });
   });
 
   describe('#update()', () => {
+    beforeEach(() => {
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
+      this._category = new Category(dataEntryTest);
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._category = null;
     });
 
     it('should update an entry into DB', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
-      const category = new Category(dataEntryTest);
-      category.props.description = 'TEST';
-      return expect(category.update()).to.eventually.be.fulfilled;
+      this._category.props.description = 'TEST';
+      return expect(this._category.update()).to.eventually.be.fulfilled;
+    });
+
+    it('should NOT find any entry to update into DB', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
+      return expect(this._category.update()).to.eventually.be.rejectedWith(Error)
+        .and.to.have.property('status', 404);
     });
 
     it('should fail when update an entry into DB', () => {
       sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
-      const category = new Category({
-        iduser: 'A',
-        idcategory: 'B'
-      });
-      return expect(category.update()).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
+      return expect(this._category.update()).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 
   describe('#delete()', () => {
+    beforeEach(() => {
+      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
+      this._category = new Category(dataEntryTest);
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._category = null;
     });
 
     it('should delete an entry from DB', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
-      const category = new Category(dataEntryTest);
-      return expect(category.delete()).to.eventually.be.fulfilled;
+      return expect(this._category.delete()).to.eventually.be.fulfilled;
+    });
+
+    it('should NOT find any entry to delete from DB', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
+      return expect(this._category.delete()).to.eventually.be.rejectedWith(Error)
+        .and.to.have.property('status', 404);
     });
 
     it('should fail when delete an entry from DB', () => {
       sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
-      const category = new Category({
-        idcategory: 'A',
-        iduser: 'B'
-      });
-      return expect(category.delete()).to.eventually.be.rejectedWith(Error);
+      return expect(this._category.delete()).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 });

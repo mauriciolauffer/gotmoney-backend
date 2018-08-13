@@ -22,8 +22,8 @@ router.get('/:id', (req, res, next) => {
     .then((result) => {
       res.status(200).json({
         User: result[0].getProperties(),
-        Account: result[1] || [],
-        Category: result[2] || [],
+        Account: result[1],
+        Category: result[2],
         AccountType: result[3]
       });
     })

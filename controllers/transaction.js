@@ -53,11 +53,7 @@ Transaction.prototype.getAll = function(iduser) {
     .sort({ duedate: 1 })
     .lean().exec()
     .then((docs) => {
-      if (docs) {
-        return docs;
-      } else {
-        throw CustomErrors.HTTP.get404();
-      }
+      return (docs) ? docs : [];
     })
     .catch((err) => {
       throw err;
@@ -74,11 +70,7 @@ Transaction.prototype.findByPeriod = function(iduser, year, month) {
     .sort({ duedate: 1 })
     .lean().exec()
     .then((docs) => {
-      if (docs) {
-        return docs;
-      } else {
-        throw CustomErrors.HTTP.get404();
-      }
+      return (docs) ? docs : [];
     })
     .catch((err) => {
       throw err;
@@ -93,11 +85,7 @@ Transaction.prototype.findOverdue = function(iduser) {
     .sort({ duedate: 1 })
     .lean().exec()
     .then((docs) => {
-      if (docs) {
-        return docs;
-      } else {
-        throw CustomErrors.HTTP.get404();
-      }
+      return (docs) ? docs : [];
     })
     .catch((err) => {
       throw err;

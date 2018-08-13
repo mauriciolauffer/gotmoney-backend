@@ -1,6 +1,7 @@
 env:
   node: true
   es6: true
+  amd: true
   mocha: true
 
 parserOptions:

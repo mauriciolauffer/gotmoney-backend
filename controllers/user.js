@@ -191,7 +191,17 @@ User.prototype.updateGoogle = function() {
 
 User.prototype.updatePassword = function() {
   return this.hashPassword(this.props.passwd)
-    .then((hash) => db.findOneAndUpdate({ iduser: this.props.iduser }, { passwd: hash }).lean().exec())
+    .then((hash) => {
+      return db.findOneAndUpdate({ iduser: this.props.iduser }, { passwd: hash })
+        .lean().exec()
+        .then((docs) => {
+          if (docs) {
+            return docs;
+          } else {
+            throw CustomErrors.HTTP.get404();
+          }
+        });
+    })
     .catch((err) => {
       throw err;
     });

@@ -7,11 +7,10 @@ const sinon = require('sinon');
 const db = require('../../../models/transaction');
 const Transaction = require('../../../controllers/transaction');
 const Helper = require('../../helper/helper');
-const CustomErrors = require('../../../utils/errors');
 const expect = chai.expect;
 const sandbox = sinon.createSandbox();
 const dbMock = Helper.getMongoDbModelMock();
-const dbError = CustomErrors.HTTP.get404();
+const dbError = new Error();
 const dataEntryTest = Helper.getFakeTransaction();
 const dataEntryDbTest = Helper.getFakeTransaction();
 dataEntryDbTest.idparent = null;
@@ -94,140 +93,177 @@ describe('Transaction', () => {
   });
 
   describe('#getAll()', () => {
+    beforeEach(() => {
+      sandbox.stub(db, 'find').returns(dbMock);
+      this._transaction = new Transaction();
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._transaction = null;
     });
 
     it('should return all entries from DB', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'find').returns(dbMock);
-      const iduser = faker.random.number();
-      const transaction = new Transaction();
-      return expect(transaction.getAll(iduser)).to.eventually.be.fulfilled
-        .and.to.be.instanceOf(Object)
+      return expect(this._transaction.getAll(dataEntryTest.iduser)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Array)
+        .and.to.have.lengthOf(1)
         .and.to.have.nested.property('[0].idtransaction', dataEntryTest.idtransaction);
+    });
+
+    it('should return no entries, empty array, from DB', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
+      return expect(this._transaction.getAll(dataEntryTest.iduser)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Array)
+        .and.to.have.lengthOf(0);
     });
 
     it('should fail to return all entries from DB', () => {
       sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'find').returns(dbMock);
-      const iduser = 'A';
-      const transaction = new Transaction();
-      return expect(transaction.getAll(iduser)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
+      return expect(this._transaction.getAll(dataEntryTest.iduser)).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 
   describe('#findByID()', () => {
+    beforeEach(() => {
+      sandbox.stub(db, 'findOne').returns(dbMock);
+      this._transaction = new Transaction();
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._transaction = null;
     });
 
     it('should find an entry into DB by ID', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'findOne').returns(dbMock);
-      const iduser = faker.random.number();
-      const idtransaction = faker.random.number();
-      const transaction = new Transaction();
-      return expect(transaction.findById(iduser, idtransaction)).to.eventually.be.fulfilled
-        .and.to.be.instanceOf(Object)
+      return expect(this._transaction.findById(dataEntryTest.iduser, dataEntryTest.idtransaction)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Transaction)
         .and.to.have.nested.property('props.idtransaction', dataEntryTest.idtransaction);
+    });
+
+    it('should NOT find any entry into DB by ID', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
+      return expect(this._transaction.findById(dataEntryTest.iduser, dataEntryTest.idtransaction)).to.eventually.be.rejectedWith(Error)
+        .and.to.have.property('status', 404);
     });
 
     it('should fail to find an entry into DB by ID', () => {
       sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'findOne').returns(dbMock);
-      const iduser = 'A';
-      const idtransaction = 'B';
-      const transaction = new Transaction();
-      return expect(transaction.findById(iduser, idtransaction)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
+      return expect(this._transaction.findById(dataEntryTest.iduser, dataEntryTest.idtransaction)).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 
   describe('#findByPeriod()', () => {
+    beforeEach(() => {
+      sandbox.stub(db, 'find').returns(dbMock);
+      this._transaction = new Transaction();
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._transaction = null;
     });
 
     it('should find all entries into DB by a given period', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'find').returns(dbMock);
-      const iduser = faker.random.number();
       const year = 2000;
       const month = 10;
-      const transaction = new Transaction();
-      return expect(transaction.findByPeriod(iduser, year, month)).to.eventually.be.fulfilled
-        .and.to.be.instanceOf(Object)
+      return expect(this._transaction.findByPeriod(dataEntryTest.iduser, year, month)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Array)
+        .and.to.have.lengthOf(1)
         .and.to.have.nested.property('[0].idtransaction', dataEntryTest.idtransaction);
     });
 
-    it('should find all entries into DB by a given period', () => {
-      sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'find').returns(dbMock);
-      const iduser = 'A';
+    it('should return no entries, empty array, from DB by a given period', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
       const year = 2000;
-      const month = 9;
-      const transaction = new Transaction();
-      return expect(transaction.findByPeriod(iduser, year, month)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
+      const month = 10;
+      return expect(this._transaction.findByPeriod(dataEntryTest.iduser, year, month)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Array)
+        .and.to.have.lengthOf(0);
+    });
+
+    it('should fail to return all entries from DB by a given period', () => {
+      sandbox.stub(dbMock, 'exec').rejects(dbError);
+      const year = 2000;
+      const month = 10;
+      return expect(this._transaction.findByPeriod(dataEntryTest.iduser, year, month)).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 
   describe('#findOverdue()', () => {
-    afterEach(() => {
-      sandbox.restore();
+    beforeEach(() => {
+      sandbox.stub(db, 'find').returns(dbMock);
+      this._transaction = new Transaction();
     });
 
-    it('should find all overdue entries into DB', () => {
+    afterEach(() => {
+      sandbox.restore();
+      this._transaction = null;
+    });
+
+    it('should find all entries into DB by a given period', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'find').returns(dbMock);
-      const iduser = faker.random.number();
-      const transaction = new Transaction();
-      return expect(transaction.findOverdue(iduser)).to.eventually.be.fulfilled
-        .and.to.be.instanceOf(Object)
+      return expect(this._transaction.findOverdue(dataEntryTest.iduser)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Array)
+        .and.to.have.lengthOf(1)
         .and.to.have.nested.property('[0].idtransaction', dataEntryTest.idtransaction);
     });
 
-    it('should fail to find all overdue entries into DB', () => {
+    it('should return no entries, empty array, from DB by a given period', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
+      return expect(this._transaction.findOverdue(dataEntryTest.iduser)).to.eventually.be.fulfilled
+        .and.to.be.instanceOf(Array)
+        .and.to.have.lengthOf(0);
+    });
+
+    it('should fail to return all entries from DB by a given period', () => {
       sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'find').returns(dbMock);
-      const iduser = 'A';
-      const transaction = new Transaction();
-      return expect(transaction.findOverdue(iduser)).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
+      return expect(this._transaction.findOverdue(dataEntryTest.iduser)).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 
   describe('#create()', () => {
+    beforeEach(() => {
+      this._transaction = new Transaction(dataEntryTest);
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._transaction = null;
     });
 
     it('should create a new entry into DB', () => {
       sandbox.stub(db, 'create').resolves(dbEntryReturn);
-      const transaction = new Transaction(dataEntryDbTest);
-      return expect(transaction.create()).to.eventually.be.fulfilled;
+      return expect(this._transaction.create()).to.eventually.be.fulfilled;
     });
 
     it('should fail when create an entry into DB', () => {
       sandbox.stub(db, 'create').rejects(dbError);
-      const transaction = new Transaction(dataEntryTest);
-      return expect(transaction.create()).to.eventually.be.rejectedWith(Error);
+      return expect(this._transaction.create()).to.eventually.be.rejectedWith(Error);
     });
   });
 
   describe('#createBatch()', () => {
+    beforeEach(() => {
+      this._transaction = new Transaction(dataEntryTest);
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._transaction = null;
     });
 
     it('should create an entry into DB', () => {
       sandbox.stub(db, 'insertMany').resolves(dbEntryReturn);
       const payload = [Object.assign({}, dataEntryDbTest)];
       payload[0].idtransaction = faker.random.number();
-      const transaction = new Transaction();
-      return expect(transaction.createBatch(dataEntryDbTest.iduser, payload)).to.eventually.be.fulfilled;
+      return expect(this._transaction.createBatch(dataEntryDbTest.iduser, payload)).to.eventually.be.fulfilled;
     });
 
     it('should create a 2 entries into DB', () => {
@@ -238,8 +274,7 @@ describe('Transaction', () => {
       dataEntryDbTest2.idtransaction = faker.random.number();
       payload.push(dataEntryDbTest);
       payload.push(dataEntryDbTest2);
-      const transaction = new Transaction();
-      return expect(transaction.createBatch(dataEntryDbTest.iduser, payload)).to.eventually.be.fulfilled;
+      return expect(this._transaction.createBatch(dataEntryDbTest.iduser, payload)).to.eventually.be.fulfilled;
     });
 
     it('should fail when create 2 entries into DB', () => {
@@ -250,56 +285,66 @@ describe('Transaction', () => {
       dataEntryDbTest2.idtransaction = faker.random.number();
       payload.push([dataEntryDbTest]);
       payload.push([dataEntryDbTest2]);
-      const transaction = new Transaction();
-      return expect(transaction.createBatch(dataEntryDbTest.iduser, payload)).to.eventually.be.rejectedWith(Error);
+      return expect(this._transaction.createBatch(dataEntryDbTest.iduser, payload)).to.eventually.be.rejectedWith(Error);
     });
   });
 
   describe('#update()', () => {
+    beforeEach(() => {
+      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
+      this._transaction = new Transaction(dataEntryTest);
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._transaction = null;
     });
 
     it('should update an entry into DB', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
-      const transaction = new Transaction(dataEntryDbTest);
-      transaction.props.description = 'TEST';
-      return expect(transaction.update()).to.eventually.be.fulfilled;
+      this._transaction.props.description = 'TEST';
+      return expect(this._transaction.update()).to.eventually.be.fulfilled;
+    });
+
+    it('should NOT find any entry to update into DB', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
+      return expect(this._transaction.update()).to.eventually.be.rejectedWith(Error)
+        .and.to.have.property('status', 404);
     });
 
     it('should fail when update an entry into DB', () => {
       sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'findOneAndUpdate').returns(dbMock);
-      const transaction = new Transaction({
-        iduser: 'A',
-        idtransaction: 'B'
-      });
-      return expect(transaction.update()).to.eventually.be.rejectedWith(Error)
-        .and.to.have.property('status', 404);
+      return expect(this._transaction.update()).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 
   describe('#delete()', () => {
+    beforeEach(() => {
+      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
+      this._transaction = new Transaction(dataEntryTest);
+    });
+
     afterEach(() => {
       sandbox.restore();
+      this._transaction = null;
     });
 
     it('should delete an entry from DB', () => {
       sandbox.stub(dbMock, 'exec').resolves(dbEntryReturn);
-      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
-      const transaction = new Transaction(dataEntryDbTest);
-      return expect(transaction.delete()).to.eventually.be.fulfilled;
+      return expect(this._transaction.delete()).to.eventually.be.fulfilled;
+    });
+
+    it('should NOT find any entry to delete from DB', () => {
+      sandbox.stub(dbMock, 'exec').resolves(null);
+      return expect(this._transaction.delete()).to.eventually.be.rejectedWith(Error)
+        .and.to.have.property('status', 404);
     });
 
     it('should fail when delete an entry from DB', () => {
       sandbox.stub(dbMock, 'exec').rejects(dbError);
-      sandbox.stub(db, 'findOneAndDelete').returns(dbMock);
-      const transaction = new Transaction({
-        iduser: 'A',
-        idtransaction: 'B'
-      });
-      return expect(transaction.delete()).to.eventually.be.rejectedWith(Error);
+      return expect(this._transaction.delete()).to.eventually.be.rejectedWith(Error)
+        .and.to.not.have.property('status');
     });
   });
 });

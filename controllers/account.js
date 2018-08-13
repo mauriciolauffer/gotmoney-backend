@@ -48,11 +48,7 @@ Account.prototype.getAll = function(iduser) {
     .sort({ description: 1 })
     .lean().exec()
     .then((docs) => {
-      if (docs) {
-        return docs;
-      } else {
-        throw CustomErrors.HTTP.get404();
-      }
+      return (docs) ? docs : [];
     })
     .catch((err) => {
       throw err;

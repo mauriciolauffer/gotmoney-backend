@@ -10,13 +10,16 @@ const Helper = require('../../helper/helper');
 const sandbox = sinon.createSandbox();
 const agent = supertest.agent(app);
 const payloadBase = Helper.getFakeUser();
-const idUserDoesNotExist = 99999999995555;
+//const idUserDoesNotExist = 99999999995555;
+let CSRF_TOKEN;
 
 describe('Routing User', () => {
   before(() => {
     sandbox.stub(mock_middleware.getMiddleware('authenticate'), 'handle').callsFake(mock_middleware.authenticate);
     const user = new User(payloadBase);
-    return user.create();
+    return user.create()
+      .then(() => Helper.getCSRFToken(agent))
+      .then((csrfToken) => CSRF_TOKEN = csrfToken);
   });
 
   after(() => {
@@ -31,18 +34,11 @@ describe('Routing User', () => {
         .set('Accept', 'application/json')
         .expect('Content-Type', /application\/json/)
         .expect(200)
-        .end((err, res) => {
-          if (err) return done(err);
+        .then((res) => {
           expect(res.body).to.be.an('object');
           done();
-        });
-    });
-
-    it('should get user', () => {
-      agent.get('/api/user/' + idUserDoesNotExist)
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /application\/json/)
-        .expect(404);
+        })
+        .catch((err) => done(err));
     });
   });
 
@@ -50,16 +46,13 @@ describe('Routing User', () => {
     it('should update user, no password', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.name += Date.now();
-      Helper.getCSRFToken(agent)
-        .then((csrfToken) => {
-          agent.put('/api/user/' + payload.iduser)
-            .send(payload)
-            .set('x-csrf-token', csrfToken)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /application\/json/)
-            .expect(200)
-            .end((err, res) => { return (err) ? done(err) : done(); });
-        })
+      agent.put('/api/user/' + payload.iduser)
+        .send(payload)
+        .set('x-csrf-token', CSRF_TOKEN)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /application\/json/)
+        .expect(200)
+        .then(() => done())
         .catch((err) => done(err));
     });
 
@@ -68,36 +61,30 @@ describe('Routing User', () => {
       payload.name += Date.now();
       payload.passwdold = payload.passwd;
       payload.passwd = payload.passwd + Date.now();
-      Helper.getCSRFToken(agent)
-        .then((csrfToken) => {
-          agent.put('/api/user/' + payload.iduser)
-            .send(payload)
-            .set('x-csrf-token', csrfToken)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /application\/json/)
-            .expect(200)
-            .end((err, res) => { return (err) ? done(err) : done(); });
-        })
+      agent.put('/api/user/' + payload.iduser)
+        .send(payload)
+        .set('x-csrf-token', CSRF_TOKEN)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /application\/json/)
+        .expect(200)
+        .then(() => done())
         .catch((err) => done(err));
     });
 
-    it('should fail when update user', (done) => {
+    it('should fail valition when update user', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.name = null;
-      Helper.getCSRFToken(agent)
-        .then((csrfToken) => {
-          agent.put('/api/user/' + payload.iduser)
-            .send(payload)
-            .set('x-csrf-token', csrfToken)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /application\/json/)
-            .expect(400)
-            .end((err, res) => {
-              expect(res.body).to.be.an('object')
-                .and.to.have.deep.property('message', 'Invalid data!');
-              expect(res.body).to.have.deep.property('error');
-              return (err) ? done(err) : done();
-            });
+      agent.put('/api/user/' + payload.iduser)
+        .send(payload)
+        .set('x-csrf-token', CSRF_TOKEN)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /application\/json/)
+        .expect(400)
+        .then((res) => {
+          expect(res.body).to.be.an('object')
+            .and.to.have.deep.property('message', 'Invalid data!');
+          expect(res.body).to.have.deep.property('error');
+          done();
         })
         .catch((err) => done(err));
     });
@@ -106,42 +93,36 @@ describe('Routing User', () => {
       const payload = Object.assign({}, payloadBase);
       payload.passwdold = payload.passwd + Date.now();
       payload.passwd = payload.passwd + Date.now() + Date.now();
-      Helper.getCSRFToken(agent)
-        .then((csrfToken) => {
-          agent.put('/api/user/' + payload.iduser)
-            .send(payload)
-            .set('x-csrf-token', csrfToken)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /application\/json/)
-            .expect(500)
-            .end((err, res) => {
-              expect(res.body).to.be.an('object')
-                .and.to.have.deep.property('message', 'Invalid password!');
-              expect(res.body).to.have.deep.property('error');
-              return (err) ? done(err) : done();
-            });
+      agent.put('/api/user/' + payload.iduser)
+        .send(payload)
+        .set('x-csrf-token', CSRF_TOKEN)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /application\/json/)
+        .expect(500)
+        .then((res) => {
+          expect(res.body).to.be.an('object')
+            .and.to.have.deep.property('message', 'Invalid password!');
+          expect(res.body).to.have.deep.property('error');
+          done();
         })
         .catch((err) => done(err));
     });
 
-    it('should fail update password, new password invalid', (done) => {
+    it('should fail validation when update password, new password invalid', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.passwdold = payload.passwd;
       payload.passwd = 'A';
-      Helper.getCSRFToken(agent)
-        .then((csrfToken) => {
-          agent.put('/api/user/' + payload.iduser)
-            .send(payload)
-            .set('x-csrf-token', csrfToken)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /application\/json/)
-            .expect(400)
-            .end((err, res) => {
-              expect(res.body).to.be.an('object')
-                .and.to.have.deep.property('message', 'Invalid data!');
-              expect(res.body).to.have.deep.property('error');
-              return (err) ? done(err) : done();
-            });
+      agent.put('/api/user/' + payload.iduser)
+        .send(payload)
+        .set('x-csrf-token', CSRF_TOKEN)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /application\/json/)
+        .expect(400)
+        .then((res) => {
+          expect(res.body).to.be.an('object')
+            .and.to.have.deep.property('message', 'Invalid data!');
+          expect(res.body).to.have.deep.property('error');
+          done();
         })
         .catch((err) => done(err));
     });
