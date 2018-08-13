@@ -15,7 +15,7 @@ const csrf = require('csurf');
 const sha1 = require('crypto-js/sha1');
 const base64 = require('crypto-js/enc-base64');
 const app = express();
-const corsOrigin = new RegExp('^' + process.env.CORS_ORIGIN);
+const corsOrigin = (process.env.CORS_ORIGIN === '*') ? process.env.CORS_ORIGIN : new RegExp('^' + process.env.CORS_ORIGIN);
 const corsParams = {
   origin: corsOrigin,
   credentials: true,
