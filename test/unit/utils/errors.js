@@ -1,7 +1,7 @@
 'use strict';
 
 const Errors = require('../../../utils/errors');
-const expect = require('chai').expect;
+const { expect } = require('chai');
 
 describe('Errors', () => {
   describe('Custom errors', () => {

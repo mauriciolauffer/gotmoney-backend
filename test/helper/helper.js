@@ -88,12 +88,10 @@ Helper.getMongoDbModelMock = function() {
 };
 
 Helper.getCSRFToken = function(agent) {
-  return new Promise((resolve, reject) => {
-    agent.get('/api/session/token')
-      .expect(200)
-      .then((res) => resolve(res.body.csrfToken))
-      .catch((err) => reject(err));
-  });
+  return agent.get('/api/session/loggedin')
+    .expect('x-csrf-token', /\w/)
+    .then((res) => res.get('x-csrf-token'))
+    .catch((err) => err);
 };
 
 module.exports = Helper;

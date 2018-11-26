@@ -13,7 +13,6 @@ const MongoStore = require('connect-mongo')(session);
 const cors = require('cors');
 const csrf = require('csurf');
 const sha1 = require('crypto-js/sha1');
-const base64 = require('crypto-js/enc-base64');
 const app = express();
 const corsOrigin = (process.env.CORS_ORIGIN === '*') ? process.env.CORS_ORIGIN : new RegExp('^' + process.env.CORS_ORIGIN);
 const corsParams = {
@@ -40,7 +39,7 @@ const sessionData = {
   secret: sha1([new Date().toISOString(), process.env.SESSION_SECRET, Math.random()].join()).toString(),
   store: new MongoStore({ mongooseConnection: mongoose.connection }),
   cookie: {
-    secure: process.env.COOKIE_SECURE == true,
+    secure: process.env.COOKIE_SECURE === true,
     httpOnly: true,
     maxAge: 7 * 24 * 60 * 60 * 1000
   }
@@ -66,7 +65,7 @@ app.use(csrf({ cookie: false }));
 require('./auth/authentication')(app);
 
 app.use((req, res, next) => {
-  res.set('X-Got-Money', base64.stringify(sha1([Math.random(), new Date().toISOString()].join())));
+  res.set('X-Got-Money', sha1([Math.random(), new Date().toISOString(), Math.random()].join()));
   res.locals.csrftoken = req.csrfToken();
   res.locals.session = req.session;
   next();

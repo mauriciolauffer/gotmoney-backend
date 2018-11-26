@@ -1,8 +1,8 @@
 'use strict';
 
 const logger = require('winston');
-const cluster = require('cluster');
-const numCPUs = require('os').cpus().length;
+//const cluster = require('cluster');
+//const numCPUs = require('os').cpus().length;
 const app = require('./app');
 const port = process.env.PORT || 3000;
 

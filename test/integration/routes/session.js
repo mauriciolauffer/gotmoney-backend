@@ -167,6 +167,7 @@ describe('Routing Session', () => {
       agent.get('/api/session/loggedin')
         .set('Accept', 'application/json')
         .expect('Content-Type', /application\/json/)
+        .expect('x-csrf-token', /\w/)
         .expect(200)
         .then(() => done())
         .catch((err) => done(err));
@@ -176,7 +177,15 @@ describe('Routing Session', () => {
       agent.get('/api/session/loggedin')
         .set('Accept', 'application/json')
         .expect('Content-Type', /application\/json/)
+        .expect('x-csrf-token', /\w/)
         .expect(401)
+        .then(() => done())
+        .catch((err) => done(err));
+    });
+
+    it('should return a CSRF token', (done) => {
+      agent.get('/api/session/loggedin')
+        .expect('x-csrf-token', /\w/)
         .then(() => done())
         .catch((err) => done(err));
     });
@@ -189,19 +198,6 @@ describe('Routing Session', () => {
         .expect('Content-Type', /application\/json/)
         .expect(200)
         .then(() => done())
-        .catch((err) => done(err));
-    });
-  });
-
-  describe('GET /api/session/token', () => {
-    it('should return a CSRF token', (done) => {
-      agent.get('/api/session/token')
-        .set('Accept', 'application/json')
-        .expect(200)
-        .then((res) => {
-          expect(res.body).to.have.deep.property('csrfToken');
-          done();
-        })
         .catch((err) => done(err));
     });
   });
