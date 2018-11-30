@@ -13,7 +13,7 @@ const google = new GoogleStrategy({
   const payload = {
     google: profile.id,
     email: profile.email,
-    name: profile.name
+    name: profile.displayName
   };
   const user = new User();
   let googleUser = {};
