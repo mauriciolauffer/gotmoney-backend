@@ -4,7 +4,7 @@ require('dotenv').load();
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const helmet = require('helmet');
-const logger = require('winston');
+const logger = require('./utils/logger');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const express = require('express');
@@ -22,7 +22,6 @@ const corsParams = {
                  'Expires', 'Last-Modified', 'Cache-Control', 'Access_token', 'Authorization', 'Cookie'],
   exposedHeaders: ['Set-Cookie', 'x-xsrf-token', 'X-CSRF-Token', 'x-csrf-token', 'X-Got-Money']
 };
-logger.level = process.env.LOG_LEVEL;
 mongoose.connect(process.env.DB_URL, {
   ssl: true,
   useNewUrlParser: true
@@ -47,9 +46,9 @@ const sessionData = {
 sessionData.store.clear(() => true); //Clear all sessions when starting the app
 
 if (app.get('env') === 'production') {
-  app.use(morgan('combined'));
+  app.use(morgan('combined', { 'stream': logger.stream }));
 } else {
-  app.use(morgan('dev'));
+  app.use(morgan('dev', { 'stream': logger.stream }));
 }
 
 app.enable('trust proxy');

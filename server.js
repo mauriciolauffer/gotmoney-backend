@@ -1,6 +1,6 @@
 'use strict';
 
-const logger = require('winston');
+const logger = require('./utils/logger');
 //const cluster = require('cluster');
 //const numCPUs = require('os').cpus().length;
 const app = require('./app');
