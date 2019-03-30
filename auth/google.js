@@ -10,10 +10,14 @@ const google = new GoogleStrategy({
   passReqToCallback: true
 }, (req, accessToken, refreshToken, profile, done) => {
   req.logout();
+  let name = '';
+  if (profile.displayName || profile.givenName || profile.familyName) {
+    name = (profile.displayName) ? profile.displayName : profile.givenName + profile.familyName;
+  }
   const payload = {
     google: profile.id,
     email: profile.email,
-    name: profile.displayName
+    name: name
   };
   const user = new User();
   let googleUser = {};
