@@ -1,6 +1,6 @@
 'use strict';
 
-require('dotenv').load();
+require('dotenv').config();
 const bodyParser = require('body-parser');
 const compression = require('compression');
 const helmet = require('helmet');
