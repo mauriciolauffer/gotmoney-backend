@@ -1,4 +1,4 @@
-FROM node:boron
+FROM node:dubnium
 
 ENV NODE_ENV development
 ENV PORT 3000
