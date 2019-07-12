@@ -21,6 +21,7 @@ function getSchema(id, required) {
       },
       budget: {
         type: 'integer',
+        default: 0,
         minimum: 0,
         maximum: 99999999999999999999
       }
