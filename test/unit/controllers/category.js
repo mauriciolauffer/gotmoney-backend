@@ -28,6 +28,7 @@ describe('Category', () => {
       expect(category.props.iduser).to.equal(dataEntryTest.iduser);
       expect(category.props.idcategory).to.equal(dataEntryTest.idcategory);
       expect(category.props.description).to.equal(dataEntryTest.description);
+      expect(category.props.budget).to.equal(dataEntryTest.budget);
     });
   });
 
@@ -38,6 +39,7 @@ describe('Category', () => {
       expect(category.props.iduser).to.equal(dataEntryTest.iduser);
       expect(category.props.idcategory).to.equal(dataEntryTest.idcategory);
       expect(category.props.description).to.equal(dataEntryTest.description);
+      expect(category.props.budget).to.equal(dataEntryTest.budget);
     });
   });
 
@@ -48,6 +50,7 @@ describe('Category', () => {
       expect(data.iduser).to.equal(dataEntryTest.iduser);
       expect(data.idcategory).to.equal(dataEntryTest.idcategory);
       expect(data.description).to.equal(dataEntryTest.description);
+      expect(data.budget).to.equal(dataEntryTest.budget);
     });
 
     it('should change data from #getProperties() and does not affect instance', () => {

@@ -7,11 +7,12 @@ function Category(data = {}) {
   this.setProperties(data);
 }
 
-Category.prototype.setProperties = function({idcategory, iduser, description}) {
+Category.prototype.setProperties = function({idcategory, iduser, description, budget}) {
   this.props = {
-    idcategory: idcategory,
-    iduser: iduser,
-    description: description
+    idcategory,
+    iduser,
+    description,
+    budget
   };
 };
 
@@ -62,7 +63,8 @@ Category.prototype.update = function() {
     iduser: this.props.iduser,
     idcategory: this.props.idcategory
   }, {
-    description: this.props.description
+    description: this.props.description,
+    budget: this.props.budget
   })
     .lean().exec()
     .then((docs) => {

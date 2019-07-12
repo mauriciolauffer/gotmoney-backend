@@ -18,6 +18,11 @@ function getSchema(id, required) {
       description: {
         type: 'string',
         maxLength: 50
+      },
+      budget: {
+        type: 'integer',
+        minimum: 0,
+        maximum: 99999999999999999999
       }
     },
     required: required

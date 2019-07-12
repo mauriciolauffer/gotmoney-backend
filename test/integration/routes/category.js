@@ -101,6 +101,7 @@ describe('Routing Category', function() {
     it('should update category', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.description += Date.now();
+      payload.budget = Date.now();
       agent.put('/api/category/' + payload.idcategory)
         .send(payload)
         .set('x-csrf-token', CSRF_TOKEN)
@@ -111,9 +112,27 @@ describe('Routing Category', function() {
         .catch((err) => done(err));
     });
 
-    it('should fail valition when update category', (done) => {
+    it('should fail validation when update category', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.description = null;
+      agent.put('/api/category/' + payload.idcategory)
+        .send(payload)
+        .set('x-csrf-token', CSRF_TOKEN)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /application\/json/)
+        .expect(400)
+        .then((res) => {
+          expect(res.body).to.be.an('object')
+            .and.to.have.deep.property('message', 'Invalid data!');
+          expect(res.body).to.have.deep.property('error');
+          return done();
+        })
+        .catch((err) => done(err));
+    });
+
+    it('should fail validation when update budget < 0', (done) => {
+      const payload = Object.assign({}, payloadBase);
+      payload.budget = -1;
       agent.put('/api/category/' + payload.idcategory)
         .send(payload)
         .set('x-csrf-token', CSRF_TOKEN)

@@ -11,6 +11,9 @@ const Category = new mongoose.Schema(
     },
     description: {
       type: String
+    },
+    budget: {
+      type: Number
     }
   },
   {

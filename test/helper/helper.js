@@ -48,7 +48,8 @@ Helper.getFakeCategory = function() {
   return {
     iduser: ID_USER,
     idcategory: ID_CATEGORY,
-    description: faker.finance.accountName()
+    description: faker.finance.accountName(),
+    budget: faker.random.number()
   };
 };
 
