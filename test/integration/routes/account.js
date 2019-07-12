@@ -112,7 +112,7 @@ describe('Routing Account', () => {
         .catch((err) => done(err));
     });
 
-    it('should fail valition when update account', (done) => {
+    it('should fail validation when update account', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.description = null;
       agent.put('/api/account/' + payload.idaccount)

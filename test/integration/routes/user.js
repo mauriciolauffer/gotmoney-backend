@@ -71,7 +71,7 @@ describe('Routing User', () => {
         .catch((err) => done(err));
     });
 
-    it('should fail valition when update user', (done) => {
+    it('should fail validation when update user', (done) => {
       const payload = Object.assign({}, payloadBase);
       payload.name = null;
       agent.put('/api/user/' + payload.iduser)
