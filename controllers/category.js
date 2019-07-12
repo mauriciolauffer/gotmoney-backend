@@ -12,7 +12,7 @@ Category.prototype.setProperties = function({idcategory, iduser, description, bu
     idcategory,
     iduser,
     description,
-    budget
+    budget: budget || 0
   };
 };
 
