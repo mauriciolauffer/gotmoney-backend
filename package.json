@@ -48,9 +48,9 @@
   "scripts": {
     "start": "node lib/server.js",
     "lint": "eslint lib",
-    "test": "nyc --reporter=html --reporter=text mocha lib/test/",
-    "test-unit": "nyc --reporter=html --reporter=text mocha lib/test/unit",
-    "test-int": "nyc --reporter=html --reporter=text mocha lib/test/integration",
+    "test": "nyc --reporter=html --reporter=text mocha lib/test/**",
+    "test-unit": "nyc --reporter=html --reporter=text mocha lib/test/unit/**",
+    "test-int": "nyc --reporter=html --reporter=text mocha lib/test/integration/**",
     "posttest": "nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
