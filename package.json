@@ -4,18 +4,22 @@
   "description": "GotMoney App",
   "author": "Mauricio Lauffer",
   "private": true,
+  "main": "lib/server.js",
+  "files": [
+    "lib"
+  ],
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "coveralls": "^3.0.6",
     "dotenv": "^8.1.0",
-    "eslint": "^6.2.2",
+    "eslint": "^6.4.0",
     "faker": "^4.1.0",
-    "helmet": "^3.20.1",
+    "helmet": "^3.21.0",
     "mocha": "^6.2.0",
     "mocha-lcov-reporter": "^1.3.0",
     "nyc": "^14.1.1",
-    "sinon": "^7.4.1",
+    "sinon": "^7.4.2",
     "supertest": "^4.0.2"
   },
   "dependencies": {
@@ -30,7 +34,7 @@
     "express": "^4.17.1",
     "express-session": "^1.16.2",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.6.11",
+    "mongoose": "^5.7.1",
     "morgan": "^1.9.1",
     "nodemailer": "^6.3.0",
     "passport": "^0.4.0",
@@ -41,11 +45,11 @@
     "winston": "^3.2.1"
   },
   "scripts": {
-    "start": "node server.js",
-    "lint": "eslint ./",
-    "test": "nyc --reporter=html --reporter=text mocha ./test/",
-    "test-unit": "nyc --reporter=html --reporter=text mocha ./test/unit",
-    "test-int": "nyc --reporter=html --reporter=text mocha ./test/integration",
+    "start": "node lib/server.js",
+    "lint": "eslint lib",
+    "test": "nyc --reporter=html --reporter=text mocha lib/test/",
+    "test-unit": "nyc --reporter=html --reporter=text mocha lib/test/unit",
+    "test-int": "nyc --reporter=html --reporter=text mocha lib/test/integration",
     "posttest": "nyc report --reporter=text-lcov | coveralls"
   },
   "repository": {
