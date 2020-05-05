@@ -43,7 +43,8 @@
     "passport-google-token": "^0.1.2",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
-    "winston": "^3.2.1"
+    "winston": "^3.2.1",
+    "snyk": "^1.317.0"
   },
   "scripts": {
     "start": "node lib/server.js",
@@ -51,7 +52,9 @@
     "test": "nyc --reporter=html --reporter=text mocha lib/test/**",
     "test-unit": "nyc --reporter=html --reporter=text mocha lib/test/unit/**",
     "test-int": "nyc --reporter=html --reporter=text mocha lib/test/integration/**",
-    "posttest": "nyc report --reporter=text-lcov | coveralls"
+    "posttest": "nyc report --reporter=text-lcov | coveralls",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "repository": {
     "type": "git",
@@ -59,5 +62,6 @@
   },
   "engines": {
     "node": "10.12.0"
-  }
+  },
+  "snyk": true
 }
