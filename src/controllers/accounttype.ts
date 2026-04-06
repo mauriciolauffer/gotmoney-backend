@@ -1,4 +1,4 @@
-import { IAccountType } from '../models/accounttype';
+import { IAccountType } from "../models/accounttype";
 
 export class AccountType {
   db: D1Database;
@@ -9,11 +9,11 @@ export class AccountType {
 
   async getAll(): Promise<IAccountType[]> {
     try {
-      const { results } = await this.db.prepare('SELECT * FROM AccountTypes').all<IAccountType>();
+      const { results } = await this.db.prepare("SELECT * FROM AccountTypes").all<IAccountType>();
       return results || [];
     } catch (err: any) {
       err.status = 404;
-      err.code = 'NOT_FOUND';
+      err.code = "NOT_FOUND";
       throw err;
     }
   }

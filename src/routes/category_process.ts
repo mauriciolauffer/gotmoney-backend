@@ -1,10 +1,10 @@
-import { Context } from 'hono';
-import Category from '../controllers/category';
+import { Context } from "hono";
+import Category from "../controllers/category";
 
 export async function create(c: Context) {
   const db = c.env.DB;
   const payload = await c.req.json();
-  const reqUser = c.get('jwtPayload') || (c.get('user') as any);
+  const reqUser = c.get("jwtPayload") || (c.get("user") as any);
   payload.iduser = reqUser.iduser;
   const category = new Category(db, payload);
   await category.create();
@@ -14,7 +14,7 @@ export async function create(c: Context) {
 export async function read(c: Context) {
   const db = c.env.DB;
   const category = new Category(db);
-  const reqUser = c.get('jwtPayload') || (c.get('user') as any);
+  const reqUser = c.get("jwtPayload") || (c.get("user") as any);
   const result = await category.getAll(reqUser.iduser);
   return c.json(result);
 }
@@ -22,7 +22,7 @@ export async function read(c: Context) {
 export async function update(c: Context) {
   const db = c.env.DB;
   const payload = await c.req.json();
-  const reqUser = c.get('jwtPayload') || (c.get('user') as any);
+  const reqUser = c.get("jwtPayload") || (c.get("user") as any);
   payload.iduser = reqUser.iduser;
   const category = new Category(db, payload);
   await category.update();
@@ -31,8 +31,8 @@ export async function update(c: Context) {
 
 export async function remove(c: Context) {
   const db = c.env.DB;
-  const id = c.req.param('id');
-  const reqUser = c.get('jwtPayload') || (c.get('user') as any);
+  const id = c.req.param("id");
+  const reqUser = c.get("jwtPayload") || (c.get("user") as any);
   const category = new Category(db, {
     iduser: reqUser.iduser,
     idcategory: id,

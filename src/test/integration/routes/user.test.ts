@@ -1,30 +1,30 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import app from '../../../index';
-import User from '../../../controllers/user';
-import Account from '../../../controllers/account';
-import Category from '../../../controllers/category';
-import AccountType from '../../../controllers/accounttype';
-import * as Helper from '../../helper/helper';
-import { sign } from 'hono/jwt';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import app from "../../../index";
+import User from "../../../controllers/user";
+import Account from "../../../controllers/account";
+import Category from "../../../controllers/category";
+import AccountType from "../../../controllers/accounttype";
+import * as Helper from "../../helper/helper";
+import { sign } from "hono/jwt";
 
 const payloadBase = Helper.getFakeUser();
 
-describe('Routing User Integration', () => {
+describe("Routing User Integration", () => {
   let token: string;
   const dbMock = Helper.getD1DatabaseMock();
   const env = {
-    SESSION_SECRET: 'tasmanianDevil',
-    CORS_ORIGIN: '*',
-    NODE_ENV: 'development',
-    DB: dbMock
+    SESSION_SECRET: "tasmanianDevil",
+    CORS_ORIGIN: "*",
+    NODE_ENV: "development",
+    DB: dbMock,
   };
 
   beforeEach(async () => {
-    vi.spyOn(User.prototype, 'findById').mockResolvedValue(new User(dbMock, payloadBase));
-    vi.spyOn(User.prototype, 'update').mockResolvedValue({});
-    vi.spyOn(Account.prototype, 'getAll').mockResolvedValue([]);
-    vi.spyOn(Category.prototype, 'getAll').mockResolvedValue([]);
-    vi.spyOn(AccountType.prototype, 'getAll').mockResolvedValue([]);
+    vi.spyOn(User.prototype, "findById").mockResolvedValue(new User(dbMock, payloadBase));
+    vi.spyOn(User.prototype, "update").mockResolvedValue({});
+    vi.spyOn(Account.prototype, "getAll").mockResolvedValue([]);
+    vi.spyOn(Category.prototype, "getAll").mockResolvedValue([]);
+    vi.spyOn(AccountType.prototype, "getAll").mockResolvedValue([]);
 
     token = await sign(payloadBase as any, env.SESSION_SECRET);
   });
@@ -33,30 +33,38 @@ describe('Routing User Integration', () => {
     vi.restoreAllMocks();
   });
 
-  describe('GET /api/user/:id', () => {
-    it('should get user', async () => {
-      const res = await app.request(`/api/user/${payloadBase.iduser}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }, env);
+  describe("GET /api/user/:id", () => {
+    it("should get user", async () => {
+      const res = await app.request(
+        `/api/user/${payloadBase.iduser}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+        env,
+      );
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body).toBeDefined();
     });
   });
 
-  describe('PUT /api/user/:id', () => {
-    it('should update user, no password', async () => {
-      const payload = { ...payloadBase, name: 'Updated Name' };
-      const res = await app.request(`/api/user/${payload.iduser}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
+  describe("PUT /api/user/:id", () => {
+    it("should update user, no password", async () => {
+      const payload = { ...payloadBase, name: "Updated Name" };
+      const res = await app.request(
+        `/api/user/${payload.iduser}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload)
-      }, env);
+        env,
+      );
       expect(res.status).toBe(200);
     });
   });

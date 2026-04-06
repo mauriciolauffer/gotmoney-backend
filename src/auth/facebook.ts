@@ -1,11 +1,11 @@
-import User from '../controllers/user';
-import mailer from '../utils/mailer';
-import logger from '../utils/logger';
+import User from "../controllers/user";
+import mailer from "../utils/mailer";
+import logger from "../utils/logger";
 
 export async function facebookAuth(profile: any, config: any) {
   const payload = {
     facebook: profile.id,
-    email: (profile.emails && profile.emails[0]) ? profile.emails[0].value : null,
+    email: profile.emails && profile.emails[0] ? profile.emails[0].value : null,
     name: profile.displayName,
   };
   const db = config.DB;
@@ -36,7 +36,7 @@ async function createUser(payload: any, config: any) {
   await user.create();
   try {
     await mailer.sendNewUser(user.props.email, password!, config);
-    logger.info('Email sent!');
+    logger.info("Email sent!");
   } catch (err) {
     logger.error(err);
   }

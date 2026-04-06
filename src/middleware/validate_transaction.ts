@@ -1,68 +1,68 @@
-import { Context, Next } from 'hono';
-import Ajv from 'ajv';
+import { Context, Next } from "hono";
+import Ajv from "ajv";
 
 function getSchema(id: string, required: string[]) {
   return {
     id: id,
-    type: 'object',
+    type: "object",
     properties: {
       iduser: {
-        type: 'integer',
+        type: "integer",
         maximum: 99999999999999999999,
       },
       idtransaction: {
-        type: 'integer',
+        type: "integer",
         maximum: 99999999999999999999,
       },
       idaccount: {
-        type: 'integer',
+        type: "integer",
         maximum: 99999999999999999999,
       },
       idparent: {
-        type: ['integer', 'null'],
+        type: ["integer", "null"],
         maximum: 99999999999999999999,
       },
       idstatus: {
-        type: 'integer',
+        type: "integer",
         maximum: 9,
       },
       description: {
-        type: 'string',
+        type: "string",
         maxLength: 100,
       },
       instalment: {
-        type: 'string',
+        type: "string",
         maxLength: 6,
       },
       amount: {
-        type: 'number',
+        type: "number",
         default: 0,
         minimum: 0,
         maximum: 99999999999999999999,
       },
       type: {
-        type: 'string',
+        type: "string",
         maxLength: 1,
-        enum: ['C', 'D'],
+        enum: ["C", "D"],
       },
       startdate: {
-        type: 'string',
-        format: 'date-time',
+        type: "string",
+        format: "date-time",
         maxLength: 30,
       },
       duedate: {
-        type: 'string',
-        format: 'date-time',
+        type: "string",
+        format: "date-time",
         maxLength: 30,
       },
       tag: {
-        type: ['string', 'null'],
+        type: ["string", "null"],
         maxLength: 255,
       },
       origin: {
-        type: 'string',
+        type: "string",
         maxLength: 1,
-        enum: ['W', 'A'],
+        enum: ["W", "A"],
       },
     },
     required: required,
@@ -72,7 +72,7 @@ function getSchema(id: string, required: string[]) {
 async function validate(schema: any, payload: any) {
   const ajv = new Ajv({ allErrors: true });
   if (!ajv.validate(schema, payload)) {
-    const err = new Error('Invalid data!') as any;
+    const err = new Error("Invalid data!") as any;
     err.status = 400;
     err.validationErrors = ajv.errors;
     return err;
@@ -82,7 +82,17 @@ async function validate(schema: any, payload: any) {
 }
 
 export async function isValid(c: Context, next: Next) {
-  const schema = getSchema('transaction', ['idtransaction', 'idaccount', 'idstatus', 'description', 'instalment', 'amount', 'type', 'startdate', 'duedate']);
+  const schema = getSchema("transaction", [
+    "idtransaction",
+    "idaccount",
+    "idstatus",
+    "description",
+    "instalment",
+    "amount",
+    "type",
+    "startdate",
+    "duedate",
+  ]);
   const body = await c.req.json();
   const err = await validate(schema, body);
   if (err) return c.json({ message: err.message, validationErrors: err.validationErrors }, 400);
@@ -91,7 +101,17 @@ export async function isValid(c: Context, next: Next) {
 
 export async function isValidCreate(c: Context, next: Next) {
   const payload = await c.req.json();
-  const schema = getSchema('transaction', ['idtransaction', 'idaccount', 'idstatus', 'description', 'instalment', 'amount', 'type', 'startdate', 'duedate']);
+  const schema = getSchema("transaction", [
+    "idtransaction",
+    "idaccount",
+    "idstatus",
+    "description",
+    "instalment",
+    "amount",
+    "type",
+    "startdate",
+    "duedate",
+  ]);
 
   if (Array.isArray(payload.data)) {
     for (const item of payload.data) {

@@ -1,24 +1,24 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
-import Transaction from '../../../controllers/transaction';
-import * as Helper from '../../helper/helper';
+import { describe, it, expect, afterEach, vi } from "vitest";
+import Transaction from "../../../controllers/transaction";
+import * as Helper from "../../helper/helper";
 
 const dbMock = Helper.getD1DatabaseMock();
 const dataEntryTest = Helper.getFakeTransaction();
 const dbEntryReturn = [dataEntryTest];
 
-describe('Transaction Controller', () => {
-  describe('#constructor', () => {
-    it('should get a new instance', () => {
+describe("Transaction Controller", () => {
+  describe("#constructor", () => {
+    it("should get a new instance", () => {
       expect(new Transaction(dbMock)).toBeInstanceOf(Object);
     });
   });
 
-  describe('#getAll()', () => {
+  describe("#getAll()", () => {
     afterEach(() => {
       vi.restoreAllMocks();
     });
 
-    it('should return all entries from DB', async () => {
+    it("should return all entries from DB", async () => {
       const allMock = vi.fn().mockResolvedValue({ results: dbEntryReturn, meta: {} });
       vi.mocked(dbMock.prepare).mockReturnValue({
         all: allMock,
@@ -34,8 +34,8 @@ describe('Transaction Controller', () => {
     });
   });
 
-  describe('#createBatch()', () => {
-    it('should create entries into DB', async () => {
+  describe("#createBatch()", () => {
+    it("should create entries into DB", async () => {
       vi.mocked(dbMock.prepare).mockReturnValue({
         bind: vi.fn().mockReturnThis(),
         all: vi.fn(),

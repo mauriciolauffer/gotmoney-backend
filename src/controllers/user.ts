@@ -1,9 +1,9 @@
-import bcrypt from 'bcryptjs';
-import sha256 from 'crypto-js/sha256';
-import base64 from 'crypto-js/enc-base64';
-import md5 from 'crypto-js/md5';
-import { IUser } from '../models/user';
-import CustomErrors from '../utils/errors';
+import bcrypt from "bcryptjs";
+import sha256 from "crypto-js/sha256";
+import base64 from "crypto-js/enc-base64";
+import md5 from "crypto-js/md5";
+import { IUser } from "../models/user";
+import CustomErrors from "../utils/errors";
 
 export class User {
   props: IUser;
@@ -14,7 +14,20 @@ export class User {
     this.props = this.setProperties(data);
   }
 
-  setProperties({ iduser, name, gender, birthdate, email, createdon, passwd, alert, active, facebook, google, twitter }: any): IUser {
+  setProperties({
+    iduser,
+    name,
+    gender,
+    birthdate,
+    email,
+    createdon,
+    passwd,
+    alert,
+    active,
+    facebook,
+    google,
+    twitter,
+  }: any): IUser {
     return {
       iduser,
       name,
@@ -36,7 +49,8 @@ export class User {
   }
 
   async findById(iduser: number): Promise<User> {
-    const result = await this.db.prepare('SELECT * FROM Users WHERE iduser = ?')
+    const result = await this.db
+      .prepare("SELECT * FROM Users WHERE iduser = ?")
       .bind(iduser)
       .first<IUser>();
 
@@ -48,7 +62,8 @@ export class User {
   }
 
   async findByEmail(email: string): Promise<User> {
-    const result = await this.db.prepare('SELECT * FROM Users WHERE email = ?')
+    const result = await this.db
+      .prepare("SELECT * FROM Users WHERE email = ?")
       .bind(email)
       .first<IUser>();
 
@@ -60,7 +75,8 @@ export class User {
   }
 
   async findByFacebook(facebook: string): Promise<User> {
-    const result = await this.db.prepare('SELECT * FROM Users WHERE facebook = ?')
+    const result = await this.db
+      .prepare("SELECT * FROM Users WHERE facebook = ?")
       .bind(facebook)
       .first<IUser>();
 
@@ -72,7 +88,8 @@ export class User {
   }
 
   async findByGoogle(google: string): Promise<User> {
-    const result = await this.db.prepare('SELECT * FROM Users WHERE google = ?')
+    const result = await this.db
+      .prepare("SELECT * FROM Users WHERE google = ?")
       .bind(google)
       .first<IUser>();
 
@@ -98,7 +115,7 @@ export class User {
     if (result === true) {
       return;
     } else {
-      throw new Error('Invalid password!');
+      throw new Error("Invalid password!");
     }
   }
 
@@ -107,7 +124,9 @@ export class User {
   }
 
   setAutoPassword() {
-    this.props.passwd = md5(sha256([Math.random().toString(), new Date().toISOString()].join('gotMONEYapp'))).toString();
+    this.props.passwd = md5(
+      sha256([Math.random().toString(), new Date().toISOString()].join("gotMONEYapp")),
+    ).toString();
   }
 
   async create(): Promise<any> {
@@ -116,33 +135,32 @@ export class User {
     this.props.active = true;
     this.props.createdon = new Date();
 
-    return this.db.prepare(
-      'INSERT INTO Users (iduser, email, name, passwd, alert, active, facebook, google, twitter, createdon, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(
-      this.props.iduser,
-      this.props.email,
-      this.props.name,
-      this.props.passwd,
-      this.props.alert ? 1 : 0,
-      this.props.active ? 1 : 0,
-      this.props.facebook,
-      this.props.google,
-      this.props.twitter,
-      this.props.createdon.toISOString(),
-      new Date().toISOString(),
-      new Date().toISOString()
-    ).run();
+    return this.db
+      .prepare(
+        "INSERT INTO Users (iduser, email, name, passwd, alert, active, facebook, google, twitter, createdon, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+      .bind(
+        this.props.iduser,
+        this.props.email,
+        this.props.name,
+        this.props.passwd,
+        this.props.alert ? 1 : 0,
+        this.props.active ? 1 : 0,
+        this.props.facebook,
+        this.props.google,
+        this.props.twitter,
+        this.props.createdon.toISOString(),
+        new Date().toISOString(),
+        new Date().toISOString(),
+      )
+      .run();
   }
 
   async update(): Promise<any> {
-    const result = await this.db.prepare(
-      'UPDATE Users SET name = ?, alert = ?, updatedAt = ? WHERE iduser = ?'
-    ).bind(
-      this.props.name,
-      this.props.alert ? 1 : 0,
-      new Date().toISOString(),
-      this.props.iduser
-    ).run();
+    const result = await this.db
+      .prepare("UPDATE Users SET name = ?, alert = ?, updatedAt = ? WHERE iduser = ?")
+      .bind(this.props.name, this.props.alert ? 1 : 0, new Date().toISOString(), this.props.iduser)
+      .run();
 
     if (result.meta.changes > 0) {
       return result;
@@ -152,13 +170,10 @@ export class User {
   }
 
   async updateFacebook(): Promise<any> {
-    const result = await this.db.prepare(
-      'UPDATE Users SET facebook = ?, updatedAt = ? WHERE iduser = ?'
-    ).bind(
-      this.props.facebook,
-      new Date().toISOString(),
-      this.props.iduser
-    ).run();
+    const result = await this.db
+      .prepare("UPDATE Users SET facebook = ?, updatedAt = ? WHERE iduser = ?")
+      .bind(this.props.facebook, new Date().toISOString(), this.props.iduser)
+      .run();
 
     if (result.meta.changes > 0) {
       return result;
@@ -168,13 +183,10 @@ export class User {
   }
 
   async updateGoogle(): Promise<any> {
-    const result = await this.db.prepare(
-      'UPDATE Users SET google = ?, updatedAt = ? WHERE iduser = ?'
-    ).bind(
-      this.props.google,
-      new Date().toISOString(),
-      this.props.iduser
-    ).run();
+    const result = await this.db
+      .prepare("UPDATE Users SET google = ?, updatedAt = ? WHERE iduser = ?")
+      .bind(this.props.google, new Date().toISOString(), this.props.iduser)
+      .run();
 
     if (result.meta.changes > 0) {
       return result;
@@ -185,13 +197,10 @@ export class User {
 
   async updatePassword(): Promise<any> {
     const hash = await this.hashPassword(this.props.passwd!);
-    const result = await this.db.prepare(
-      'UPDATE Users SET passwd = ?, updatedAt = ? WHERE iduser = ?'
-    ).bind(
-      hash,
-      new Date().toISOString(),
-      this.props.iduser
-    ).run();
+    const result = await this.db
+      .prepare("UPDATE Users SET passwd = ?, updatedAt = ? WHERE iduser = ?")
+      .bind(hash, new Date().toISOString(), this.props.iduser)
+      .run();
 
     if (result.meta.changes > 0) {
       return result;
@@ -201,7 +210,8 @@ export class User {
   }
 
   async delete(): Promise<any> {
-    const result = await this.db.prepare('DELETE FROM Users WHERE iduser = ?')
+    const result = await this.db
+      .prepare("DELETE FROM Users WHERE iduser = ?")
       .bind(this.props.iduser)
       .run();
 

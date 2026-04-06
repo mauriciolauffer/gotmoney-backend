@@ -1,26 +1,26 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
-import AccountType from '../../../controllers/accounttype';
-import * as Helper from '../../helper/helper';
-import CustomErrors from '../../../utils/errors';
+import { describe, it, expect, afterEach, vi } from "vitest";
+import AccountType from "../../../controllers/accounttype";
+import * as Helper from "../../helper/helper";
+import CustomErrors from "../../../utils/errors";
 
 const dbMock = Helper.getD1DatabaseMock();
 const dbError = CustomErrors.HTTP.get404();
 const dataEntryTest = Helper.getFakeAccountType();
 const dbEntryReturn = [dataEntryTest];
 
-describe('AccountType Controller', () => {
-  describe('#constructor', () => {
-    it('should get a new instance', () => {
+describe("AccountType Controller", () => {
+  describe("#constructor", () => {
+    it("should get a new instance", () => {
       expect(new AccountType(dbMock)).toBeInstanceOf(Object);
     });
   });
 
-  describe('#getAll()', () => {
+  describe("#getAll()", () => {
     afterEach(() => {
       vi.restoreAllMocks();
     });
 
-    it('should return all entries from DB', async () => {
+    it("should return all entries from DB", async () => {
       const allMock = vi.fn().mockResolvedValue({ results: dbEntryReturn, meta: {} });
       vi.mocked(dbMock.prepare).mockReturnValue({
         all: allMock,
@@ -35,7 +35,7 @@ describe('AccountType Controller', () => {
       expect(result[0].idtype).toBe(dataEntryTest.idtype);
     });
 
-    it('should fail to return all entries from DB', async () => {
+    it("should fail to return all entries from DB", async () => {
       const allMock = vi.fn().mockRejectedValue(dbError);
       vi.mocked(dbMock.prepare).mockReturnValue({
         all: allMock,

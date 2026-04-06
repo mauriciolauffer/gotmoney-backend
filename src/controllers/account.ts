@@ -1,5 +1,5 @@
-import { IAccount } from '../models/account';
-import CustomErrors from '../utils/errors';
+import { IAccount } from "../models/account";
+import CustomErrors from "../utils/errors";
 
 export class Account {
   props: IAccount;
@@ -10,7 +10,16 @@ export class Account {
     this.props = this.setProperties(data);
   }
 
-  setProperties({ iduser, idaccount, idtype, description, creditlimit, balance, openingdate, duedate }: any): IAccount {
+  setProperties({
+    iduser,
+    idaccount,
+    idtype,
+    description,
+    creditlimit,
+    balance,
+    openingdate,
+    duedate,
+  }: any): IAccount {
     return {
       iduser,
       idaccount,
@@ -28,7 +37,8 @@ export class Account {
   }
 
   async findById(iduser: number, idaccount: number): Promise<Account> {
-    const result = await this.db.prepare('SELECT * FROM Accounts WHERE iduser = ? AND idaccount = ?')
+    const result = await this.db
+      .prepare("SELECT * FROM Accounts WHERE iduser = ? AND idaccount = ?")
       .bind(iduser, idaccount)
       .first<IAccount>();
 
@@ -40,7 +50,8 @@ export class Account {
   }
 
   async getAll(iduser: number): Promise<IAccount[]> {
-    const { results } = await this.db.prepare('SELECT * FROM Accounts WHERE iduser = ? ORDER BY description ASC')
+    const { results } = await this.db
+      .prepare("SELECT * FROM Accounts WHERE iduser = ? ORDER BY description ASC")
       .bind(iduser)
       .all<IAccount>();
 
@@ -48,36 +59,46 @@ export class Account {
   }
 
   async create(): Promise<any> {
-    return this.db.prepare(
-      'INSERT INTO Accounts (idaccount, iduser, idtype, description, creditlimit, balance, openingdate, duedate, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    ).bind(
-      this.props.idaccount,
-      this.props.iduser,
-      this.props.idtype,
-      this.props.description,
-      this.props.creditlimit,
-      this.props.balance,
-      this.props.openingdate instanceof Date ? this.props.openingdate.toISOString() : this.props.openingdate,
-      this.props.duedate,
-      new Date().toISOString(),
-      new Date().toISOString()
-    ).run();
+    return this.db
+      .prepare(
+        "INSERT INTO Accounts (idaccount, iduser, idtype, description, creditlimit, balance, openingdate, duedate, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+      .bind(
+        this.props.idaccount,
+        this.props.iduser,
+        this.props.idtype,
+        this.props.description,
+        this.props.creditlimit,
+        this.props.balance,
+        this.props.openingdate instanceof Date
+          ? this.props.openingdate.toISOString()
+          : this.props.openingdate,
+        this.props.duedate,
+        new Date().toISOString(),
+        new Date().toISOString(),
+      )
+      .run();
   }
 
   async update(): Promise<any> {
-    const result = await this.db.prepare(
-      'UPDATE Accounts SET idtype = ?, description = ?, creditlimit = ?, balance = ?, openingdate = ?, duedate = ?, updatedAt = ? WHERE iduser = ? AND idaccount = ?'
-    ).bind(
-      this.props.idtype,
-      this.props.description,
-      this.props.creditlimit,
-      this.props.balance,
-      this.props.openingdate instanceof Date ? this.props.openingdate.toISOString() : this.props.openingdate,
-      this.props.duedate,
-      new Date().toISOString(),
-      this.props.iduser,
-      this.props.idaccount
-    ).run();
+    const result = await this.db
+      .prepare(
+        "UPDATE Accounts SET idtype = ?, description = ?, creditlimit = ?, balance = ?, openingdate = ?, duedate = ?, updatedAt = ? WHERE iduser = ? AND idaccount = ?",
+      )
+      .bind(
+        this.props.idtype,
+        this.props.description,
+        this.props.creditlimit,
+        this.props.balance,
+        this.props.openingdate instanceof Date
+          ? this.props.openingdate.toISOString()
+          : this.props.openingdate,
+        this.props.duedate,
+        new Date().toISOString(),
+        this.props.iduser,
+        this.props.idaccount,
+      )
+      .run();
 
     if (result.meta.changes > 0) {
       return result;
@@ -87,7 +108,8 @@ export class Account {
   }
 
   async delete(): Promise<any> {
-    const result = await this.db.prepare('DELETE FROM Accounts WHERE iduser = ? AND idaccount = ?')
+    const result = await this.db
+      .prepare("DELETE FROM Accounts WHERE iduser = ? AND idaccount = ?")
       .bind(this.props.iduser, this.props.idaccount)
       .run();
 

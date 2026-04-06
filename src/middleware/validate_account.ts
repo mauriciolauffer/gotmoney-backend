@@ -1,46 +1,46 @@
-import { Context, Next } from 'hono';
-import Ajv from 'ajv';
+import { Context, Next } from "hono";
+import Ajv from "ajv";
 
 function getSchema(id: string, required: string[]) {
   return {
     id: id,
-    type: 'object',
+    type: "object",
     maxProperties: 15,
     properties: {
       iduser: {
-        type: 'integer',
+        type: "integer",
         maximum: 99999999999999999999,
       },
       idaccount: {
-        type: 'integer',
+        type: "integer",
         maximum: 99999999999999999999,
       },
       idtype: {
-        type: 'integer',
+        type: "integer",
         maximum: 99999999999999999999,
       },
       description: {
-        type: 'string',
+        type: "string",
         maxLength: 50,
       },
       creditlimit: {
-        type: 'number',
+        type: "number",
         default: 0,
         minimum: 0,
         maximum: 99999999999999999999,
       },
       balance: {
-        type: 'number',
+        type: "number",
         default: 0,
         maximum: 99999999999999999999,
       },
       openingdate: {
-        type: 'string',
-        format: 'date-time',
+        type: "string",
+        format: "date-time",
         maxLength: 30,
       },
       duedate: {
-        type: ['integer', 'null'],
+        type: ["integer", "null"],
         maximum: 31,
       },
     },
@@ -51,7 +51,7 @@ function getSchema(id: string, required: string[]) {
 async function validate(schema: any, payload: any) {
   const ajv = new Ajv({ allErrors: true });
   if (!ajv.validate(schema, payload)) {
-    const err = new Error('Invalid data!') as any;
+    const err = new Error("Invalid data!") as any;
     err.status = 400;
     err.validationErrors = ajv.errors;
     return err;
@@ -61,7 +61,7 @@ async function validate(schema: any, payload: any) {
 }
 
 export async function validateAccount(c: Context, next: Next) {
-  const schema = getSchema('account', ['idaccount', 'idtype', 'description']);
+  const schema = getSchema("account", ["idaccount", "idtype", "description"]);
   const body = await c.req.json();
   const err = await validate(schema, body);
   if (err) return c.json({ message: err.message, validationErrors: err.validationErrors }, 400);

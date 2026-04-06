@@ -1,24 +1,24 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
-import Category from '../../../controllers/category';
-import * as Helper from '../../helper/helper';
+import { describe, it, expect, afterEach, vi } from "vitest";
+import Category from "../../../controllers/category";
+import * as Helper from "../../helper/helper";
 
 const dbMock = Helper.getD1DatabaseMock();
 const dataEntryTest = Helper.getFakeCategory();
 const dbEntryReturn = [dataEntryTest];
 
-describe('Category Controller', () => {
-  describe('#constructor', () => {
-    it('should get a new instance', () => {
+describe("Category Controller", () => {
+  describe("#constructor", () => {
+    it("should get a new instance", () => {
       expect(new Category(dbMock)).toBeInstanceOf(Object);
     });
   });
 
-  describe('#getAll()', () => {
+  describe("#getAll()", () => {
     afterEach(() => {
       vi.restoreAllMocks();
     });
 
-    it('should return all entries from DB', async () => {
+    it("should return all entries from DB", async () => {
       const allMock = vi.fn().mockResolvedValue({ results: dbEntryReturn, meta: {} });
       vi.mocked(dbMock.prepare).mockReturnValue({
         all: allMock,
@@ -34,8 +34,8 @@ describe('Category Controller', () => {
     });
   });
 
-  describe('#create()', () => {
-    it('should create a new entry into DB', async () => {
+  describe("#create()", () => {
+    it("should create a new entry into DB", async () => {
       const runMock = vi.fn().mockResolvedValue({ meta: { changes: 1 } });
       vi.mocked(dbMock.prepare).mockReturnValue({
         run: runMock,

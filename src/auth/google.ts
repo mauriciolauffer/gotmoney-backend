@@ -1,11 +1,11 @@
-import User from '../controllers/user';
-import mailer from '../utils/mailer';
-import logger from '../utils/logger';
+import User from "../controllers/user";
+import mailer from "../utils/mailer";
+import logger from "../utils/logger";
 
 export async function googleAuth(profile: any, config: any) {
-  let name = '';
+  let name = "";
   if (profile.displayName || profile.givenName || profile.familyName) {
-    name = profile.displayName || (profile.givenName + ' ' + profile.familyName).trim();
+    name = profile.displayName || (profile.givenName + " " + profile.familyName).trim();
   }
   const payload = {
     google: profile.id,
@@ -40,7 +40,7 @@ async function createUser(payload: any, config: any) {
   await user.create();
   try {
     await mailer.sendNewUser(user.props.email, password!, config);
-    logger.info('Email sent!');
+    logger.info("Email sent!");
   } catch (err) {
     logger.error(err);
   }

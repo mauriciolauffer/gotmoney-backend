@@ -1,5 +1,5 @@
-import { ICategory } from '../models/category';
-import CustomErrors from '../utils/errors';
+import { ICategory } from "../models/category";
+import CustomErrors from "../utils/errors";
 
 export class Category {
   props: ICategory;
@@ -24,7 +24,8 @@ export class Category {
   }
 
   async findById(iduser: number, idcategory: number): Promise<Category> {
-    const result = await this.db.prepare('SELECT * FROM Categories WHERE iduser = ? AND idcategory = ?')
+    const result = await this.db
+      .prepare("SELECT * FROM Categories WHERE iduser = ? AND idcategory = ?")
       .bind(iduser, idcategory)
       .first<ICategory>();
 
@@ -36,7 +37,8 @@ export class Category {
   }
 
   async getAll(iduser: number): Promise<ICategory[]> {
-    const { results } = await this.db.prepare('SELECT * FROM Categories WHERE iduser = ? ORDER BY description ASC')
+    const { results } = await this.db
+      .prepare("SELECT * FROM Categories WHERE iduser = ? ORDER BY description ASC")
       .bind(iduser)
       .all<ICategory>();
 
@@ -44,28 +46,34 @@ export class Category {
   }
 
   async create(): Promise<any> {
-    return this.db.prepare(
-      'INSERT INTO Categories (idcategory, iduser, description, budget, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)'
-    ).bind(
-      this.props.idcategory,
-      this.props.iduser,
-      this.props.description,
-      this.props.budget,
-      new Date().toISOString(),
-      new Date().toISOString()
-    ).run();
+    return this.db
+      .prepare(
+        "INSERT INTO Categories (idcategory, iduser, description, budget, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)",
+      )
+      .bind(
+        this.props.idcategory,
+        this.props.iduser,
+        this.props.description,
+        this.props.budget,
+        new Date().toISOString(),
+        new Date().toISOString(),
+      )
+      .run();
   }
 
   async update(): Promise<any> {
-    const result = await this.db.prepare(
-      'UPDATE Categories SET description = ?, budget = ?, updatedAt = ? WHERE iduser = ? AND idcategory = ?'
-    ).bind(
-      this.props.description,
-      this.props.budget,
-      new Date().toISOString(),
-      this.props.iduser,
-      this.props.idcategory
-    ).run();
+    const result = await this.db
+      .prepare(
+        "UPDATE Categories SET description = ?, budget = ?, updatedAt = ? WHERE iduser = ? AND idcategory = ?",
+      )
+      .bind(
+        this.props.description,
+        this.props.budget,
+        new Date().toISOString(),
+        this.props.iduser,
+        this.props.idcategory,
+      )
+      .run();
 
     if (result.meta.changes > 0) {
       return result;
@@ -75,7 +83,8 @@ export class Category {
   }
 
   async delete(): Promise<any> {
-    const result = await this.db.prepare('DELETE FROM Categories WHERE iduser = ? AND idcategory = ?')
+    const result = await this.db
+      .prepare("DELETE FROM Categories WHERE iduser = ? AND idcategory = ?")
       .bind(this.props.iduser, this.props.idcategory)
       .run();
 

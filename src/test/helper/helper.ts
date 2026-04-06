@@ -1,5 +1,5 @@
-import faker from 'faker';
-import { vi } from 'vitest';
+import faker from "faker";
+import { vi } from "vitest";
 
 const ID_ACCOUNT = 9999999999;
 const ID_CATEGORY = 9999999999;
@@ -60,13 +60,13 @@ export const getFakeTransaction = () => {
     idparent: faker.random.number(),
     idstatus: 5,
     description: faker.lorem.words(),
-    instalment: '7',
+    instalment: "7",
     amount: parseFloat(faker.finance.amount()),
-    type: 'C',
+    type: "C",
     startdate: faker.date.past(),
     duedate: faker.date.future(),
     tag: faker.internet.color(),
-    origin: 'W',
+    origin: "W",
   };
 };
 

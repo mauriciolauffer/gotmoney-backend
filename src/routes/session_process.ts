@@ -1,14 +1,14 @@
-import { Context } from 'hono';
-import logger from '../utils/logger';
-import User from '../controllers/user';
-import mailer from '../utils/mailer';
+import { Context } from "hono";
+import logger from "../utils/logger";
+import User from "../controllers/user";
+import mailer from "../utils/mailer";
 
 export async function ok(c: Context) {
   return c.json({});
 }
 
 export async function userLogin(c: Context) {
-  const user = c.get('user') as any;
+  const user = c.get("user") as any;
   const userSession = {
     iduser: user.iduser,
     email: user.email,
@@ -22,7 +22,7 @@ export async function userLogout(c: Context) {
 }
 
 export async function userSignup(c: Context) {
-  const user = c.get('user') as any;
+  const user = c.get("user") as any;
   const userSession = {
     iduser: user.iduser,
     email: user.email,
@@ -42,8 +42,9 @@ export async function passwordRecovery(c: Context) {
     password = userFound.props.passwd;
     await userFound.updatePassword();
 
-    mailer.sendRecoveryPassword(payload.email, password!, c.env)
-      .then(() => logger.info('Email sent!'))
+    mailer
+      .sendRecoveryPassword(payload.email, password!, c.env)
+      .then(() => logger.info("Email sent!"))
       .catch((err) => logger.error(err));
 
     return c.json({});
