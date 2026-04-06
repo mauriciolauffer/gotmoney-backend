@@ -14,7 +14,7 @@ export class User {
     this.props = this.setProperties(data);
   }
 
-  setProperties({ iduser, name, gender, birthdate, email, createdon, passwd, alert, active, facebook, google, twitter }: any): IUser {
+  setProperties({ iduser, name, email, createdon, passwd, alert, active, facebook, google, twitter }: any): IUser {
     return {
       iduser,
       name,
