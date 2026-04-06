@@ -8,7 +8,8 @@ export async function facebookAuth(profile: any, config: any) {
     email: (profile.emails && profile.emails[0]) ? profile.emails[0].value : null,
     name: profile.displayName,
   };
-  const user = new User();
+  const db = config.DB;
+  const user = new User(db);
 
   try {
     const userFound = await user.findByFacebook(payload.facebook);
@@ -27,13 +28,14 @@ export async function facebookAuth(profile: any, config: any) {
 
 async function createUser(payload: any, config: any) {
   payload.birthdate = new Date();
-  const user = new User(payload);
+  const db = config.DB;
+  const user = new User(db, payload);
   user.setId();
   user.setAutoPassword();
   const password = user.props.passwd;
   await user.create();
   try {
-    await mailer.sendNewUser(user.props.email, password, config);
+    await mailer.sendNewUser(user.props.email, password!, config);
     logger.info('Email sent!');
   } catch (err) {
     logger.error(err);

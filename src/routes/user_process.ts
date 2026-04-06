@@ -5,10 +5,11 @@ import Category from '../controllers/category';
 import User from '../controllers/user';
 
 export async function read(c: Context) {
-  const account = new Account();
-  const accountType = new AccountType();
-  const category = new Category();
-  const user = new User();
+  const db = c.env.DB;
+  const account = new Account(db);
+  const accountType = new AccountType(db);
+  const category = new Category(db);
+  const user = new User(db);
   const reqUser = c.get('jwtPayload') || (c.get('user') as any);
 
   try {
@@ -20,9 +21,9 @@ export async function read(c: Context) {
     ]);
 
     const userResult = result[0].getProperties();
-    userResult.Account = result[1];
-    userResult.Category = result[2];
-    userResult.Transaction = [];
+    (userResult as any).Account = result[1];
+    (userResult as any).Category = result[2];
+    (userResult as any).Transaction = [];
 
     return c.json({
       User: userResult,
@@ -34,10 +35,11 @@ export async function read(c: Context) {
 }
 
 export async function update(c: Context) {
+  const db = c.env.DB;
   const payload = await c.req.json();
   const reqUser = c.get('jwtPayload') || (c.get('user') as any);
   payload.iduser = reqUser.iduser;
-  const user = new User(payload);
+  const user = new User(db, payload);
 
   try {
     await user.update();

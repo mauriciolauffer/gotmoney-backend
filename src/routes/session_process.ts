@@ -32,7 +32,8 @@ export async function userSignup(c: Context) {
 }
 
 export async function passwordRecovery(c: Context) {
-  const user = new User();
+  const db = c.env.DB;
+  const user = new User(db);
   const payload = await c.req.json();
   let password;
   try {
@@ -41,7 +42,7 @@ export async function passwordRecovery(c: Context) {
     password = userFound.props.passwd;
     await userFound.updatePassword();
 
-    mailer.sendRecoveryPassword(payload.email, password, c.env)
+    mailer.sendRecoveryPassword(payload.email, password!, c.env)
       .then(() => logger.info('Email sent!'))
       .catch((err) => logger.error(err));
 

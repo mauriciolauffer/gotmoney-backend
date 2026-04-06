@@ -12,7 +12,8 @@ export async function googleAuth(profile: any, config: any) {
     email: profile.email,
     name: name,
   };
-  const user = new User();
+  const db = config.DB;
+  const user = new User(db);
 
   try {
     const userFound = await user.findByGoogle(payload.google);
@@ -31,13 +32,14 @@ export async function googleAuth(profile: any, config: any) {
 
 async function createUser(payload: any, config: any) {
   payload.birthdate = new Date();
-  const user = new User(payload);
+  const db = config.DB;
+  const user = new User(db, payload);
   user.setId();
   user.setAutoPassword();
   const password = user.props.passwd;
   await user.create();
   try {
-    await mailer.sendNewUser(user.props.email, password, config);
+    await mailer.sendNewUser(user.props.email, password!, config);
     logger.info('Email sent!');
   } catch (err) {
     logger.error(err);

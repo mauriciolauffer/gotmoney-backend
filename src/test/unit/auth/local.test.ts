@@ -1,7 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import * as localAuth from '../../../auth/local';
 import User from '../../../controllers/user';
-import mailer from '../../../utils/mailer';
+import * as Helper from '../../helper/helper';
+
+const dbMock = Helper.getD1DatabaseMock();
 
 describe('Local Auth', () => {
   afterEach(() => {
@@ -14,11 +16,14 @@ describe('Local Auth', () => {
       const c = {
         req: {
           json: vi.fn().mockResolvedValue({ email: 'test@example.com', passwd: 'password' })
+        },
+        env: {
+          DB: dbMock
         }
       } as any;
 
-      const userInstance = new User();
-      userInstance.props = userProps;
+      const userInstance = new User(dbMock);
+      userInstance.props = userProps as any;
       vi.spyOn(User.prototype, 'findByEmail').mockResolvedValue(userInstance);
       vi.spyOn(User.prototype, 'verifyPassword').mockResolvedValue(undefined);
 
@@ -30,10 +35,13 @@ describe('Local Auth', () => {
       const c = {
         req: {
           json: vi.fn().mockResolvedValue({ email: 'test@example.com', passwd: 'wrong' })
+        },
+        env: {
+          DB: dbMock
         }
       } as any;
 
-      vi.spyOn(User.prototype, 'findByEmail').mockResolvedValue(new User());
+      vi.spyOn(User.prototype, 'findByEmail').mockResolvedValue(new User(dbMock));
       vi.spyOn(User.prototype, 'verifyPassword').mockRejectedValue(new Error('Invalid'));
 
       await expect(localAuth.login(c)).rejects.toThrow('Invalid username/password!');

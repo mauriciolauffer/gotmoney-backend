@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { logger as honoLogger } from 'hono/logger';
-import mongoose from 'mongoose';
 import accountRouter from './routes/account';
 import categoryRouter from './routes/category';
 import sessionRouter from './routes/session';
@@ -12,7 +11,7 @@ import logger from './utils/logger';
 import { jwtMiddleware } from './auth/jwt';
 
 type Bindings = {
-  DB_URL: string;
+  DB: D1Database;
   SESSION_SECRET: string;
   CORS_ORIGIN: string;
   NODE_ENV: string;
@@ -33,26 +32,6 @@ app.use('*', async (c, next) => {
     credentials: true,
   });
   return middleware(c, next);
-});
-
-// Database connection
-let isConnected = false;
-app.use('*', async (c, next) => {
-  if (!isConnected) {
-    try {
-      await mongoose.connect(c.env.DB_URL, {
-        ssl: true,
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      } as any);
-      isConnected = true;
-      logger.info('Connected to MongoDB');
-    } catch (err) {
-      logger.error('MongoDB connection error:', err);
-      return c.json({ error: 'Database connection failed' }, 500);
-    }
-  }
-  await next();
 });
 
 // Authentication Middleware

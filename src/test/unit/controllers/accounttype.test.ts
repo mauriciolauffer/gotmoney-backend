@@ -1,10 +1,9 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import db from '../../../models/accounttype';
 import AccountType from '../../../controllers/accounttype';
 import * as Helper from '../../helper/helper';
 import CustomErrors from '../../../utils/errors';
 
-const dbMock = Helper.getMongoDbModelMock();
+const dbMock = Helper.getD1DatabaseMock();
 const dbError = CustomErrors.HTTP.get404();
 const dataEntryTest = Helper.getFakeAccountType();
 const dbEntryReturn = [dataEntryTest];
@@ -12,7 +11,7 @@ const dbEntryReturn = [dataEntryTest];
 describe('AccountType Controller', () => {
   describe('#constructor', () => {
     it('should get a new instance', () => {
-      expect(new AccountType()).toBeInstanceOf(Object);
+      expect(new AccountType(dbMock)).toBeInstanceOf(Object);
     });
   });
 
@@ -22,18 +21,30 @@ describe('AccountType Controller', () => {
     });
 
     it('should return all entries from DB', async () => {
-      vi.spyOn(dbMock, 'exec').mockResolvedValue(dbEntryReturn);
-      vi.spyOn(db, 'find').mockReturnValue(dbMock as any);
-      const accountType = new AccountType();
+      const allMock = vi.fn().mockResolvedValue({ results: dbEntryReturn, meta: {} });
+      vi.mocked(dbMock.prepare).mockReturnValue({
+        all: allMock,
+        bind: vi.fn().mockReturnThis(),
+        first: vi.fn(),
+        run: vi.fn(),
+      } as any);
+
+      const accountType = new AccountType(dbMock);
       const result = await accountType.getAll();
       expect(result).toBeInstanceOf(Array);
       expect(result[0].idtype).toBe(dataEntryTest.idtype);
     });
 
     it('should fail to return all entries from DB', async () => {
-      vi.spyOn(dbMock, 'exec').mockRejectedValue(dbError);
-      vi.spyOn(db, 'find').mockReturnValue(dbMock as any);
-      const accountType = new AccountType();
+      const allMock = vi.fn().mockRejectedValue(dbError);
+      vi.mocked(dbMock.prepare).mockReturnValue({
+        all: allMock,
+        bind: vi.fn().mockReturnThis(),
+        first: vi.fn(),
+        run: vi.fn(),
+      } as any);
+
+      const accountType = new AccountType(dbMock);
       await expect(accountType.getAll()).rejects.toThrow();
     });
   });

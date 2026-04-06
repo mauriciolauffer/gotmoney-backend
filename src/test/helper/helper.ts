@@ -1,4 +1,5 @@
 import faker from 'faker';
+import { vi } from 'vitest';
 
 const ID_ACCOUNT = 9999999999;
 const ID_CATEGORY = 9999999999;
@@ -10,7 +11,7 @@ export const getFakeUser = () => {
     iduser: ID_USER,
     name: faker.name.findName(),
     email: faker.internet.email(),
-    createdon: faker.date.past().toJSON(),
+    createdon: faker.date.past(),
     passwd: faker.internet.password(),
     alert: faker.random.boolean(),
     active: true,
@@ -28,7 +29,7 @@ export const getFakeAccount = () => {
     description: faker.finance.accountName().substring(0, 45),
     creditlimit: parseFloat(faker.finance.amount()),
     balance: parseFloat(faker.finance.amount()),
-    openingdate: faker.date.future().toJSON(),
+    openingdate: faker.date.future(),
     duedate: 25,
   };
 };
@@ -62,28 +63,37 @@ export const getFakeTransaction = () => {
     instalment: '7',
     amount: parseFloat(faker.finance.amount()),
     type: 'C',
-    startdate: faker.date.past().toJSON(),
-    duedate: faker.date.future().toJSON(),
+    startdate: faker.date.past(),
+    duedate: faker.date.future(),
     tag: faker.internet.color(),
     origin: 'W',
   };
 };
 
-export const getMongoDbModelMock = () => {
-  return {
-    where: function() {
-      return this;
-    },
-    sort: function() {
-      return this;
-    },
-    lean: function() {
-      return this;
-    },
-    exec: function() {
-      return this;
-    },
+export const getD1DatabaseMock = () => {
+  const mock: any = {
+    prepare: vi.fn(),
+    batch: vi.fn(),
+    exec: vi.fn(),
+    dump: vi.fn(),
   };
+
+  const createStatementMock = () => {
+    const sm: any = {
+      bind: vi.fn(),
+      first: vi.fn(),
+      all: vi.fn(),
+      run: vi.fn(),
+    };
+    sm.bind.mockImplementation(() => sm);
+    return sm;
+  };
+
+  const statementMock = createStatementMock();
+  mock.prepare.mockImplementation(() => createStatementMock());
+  mock._statementMock = statementMock;
+
+  return mock as unknown as D1Database & { _statementMock: any };
 };
 
 export default {
@@ -92,5 +102,5 @@ export default {
   getFakeAccountType,
   getFakeCategory,
   getFakeTransaction,
-  getMongoDbModelMock,
+  getD1DatabaseMock,
 };

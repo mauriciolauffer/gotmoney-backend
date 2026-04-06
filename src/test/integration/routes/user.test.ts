@@ -6,28 +6,27 @@ import Category from '../../../controllers/category';
 import AccountType from '../../../controllers/accounttype';
 import * as Helper from '../../helper/helper';
 import { sign } from 'hono/jwt';
-import mongoose from 'mongoose';
 
 const payloadBase = Helper.getFakeUser();
 
 describe('Routing User Integration', () => {
   let token: string;
+  const dbMock = Helper.getD1DatabaseMock();
   const env = {
     SESSION_SECRET: 'tasmanianDevil',
     CORS_ORIGIN: '*',
     NODE_ENV: 'development',
-    DB_URL: 'mongodb://localhost/test'
+    DB: dbMock
   };
 
   beforeEach(async () => {
-    vi.spyOn(User.prototype, 'findById').mockResolvedValue(new User(payloadBase));
+    vi.spyOn(User.prototype, 'findById').mockResolvedValue(new User(dbMock, payloadBase));
     vi.spyOn(User.prototype, 'update').mockResolvedValue({});
     vi.spyOn(Account.prototype, 'getAll').mockResolvedValue([]);
     vi.spyOn(Category.prototype, 'getAll').mockResolvedValue([]);
     vi.spyOn(AccountType.prototype, 'getAll').mockResolvedValue([]);
-    vi.spyOn(mongoose, 'connect').mockResolvedValue(mongoose as any);
 
-    token = await sign(payloadBase, env.SESSION_SECRET);
+    token = await sign(payloadBase as any, env.SESSION_SECRET);
   });
 
   afterEach(() => {

@@ -5,7 +5,8 @@ import logger from '../utils/logger';
 
 export async function login(c: Context) {
   const { email, passwd } = await c.req.json();
-  const user = new User();
+  const db = c.env.DB;
+  const user = new User(db);
   try {
     const userFound = await user.findByEmail(email);
     await userFound.verifyPassword(passwd);
@@ -17,8 +18,9 @@ export async function login(c: Context) {
 
 export async function signup(c: Context) {
   const body = await c.req.json();
-  const user = new User(body);
-  const existingUser = await (new User()).findByEmail(body.email).catch(() => null);
+  const db = c.env.DB;
+  const user = new User(db, body);
+  const existingUser = await (new User(db)).findByEmail(body.email).catch(() => null);
 
   if (existingUser) {
     const err = new Error('User already exist! Try another email.') as any;
