@@ -1,7 +1,0 @@
---check-leaks
---exit
---prof
---recursive
---require dotenv/config
---timeout 8000
---use_strict
