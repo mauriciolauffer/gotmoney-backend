@@ -1,28 +1,41 @@
-import bcrypt from 'bcryptjs';
-import sha256 from 'crypto-js/sha256';
-import base64 from 'crypto-js/enc-base64';
-import md5 from 'crypto-js/md5';
-import db from '../models/user';
-import CustomErrors from '../utils/errors';
+import bcrypt from "bcryptjs";
+import sha256 from "crypto-js/sha256";
+import base64 from "crypto-js/enc-base64";
+import md5 from "crypto-js/md5";
+import { IUser } from "../models/user";
+import CustomErrors from "../utils/errors";
 
 export class User {
-  props: any;
+  props: IUser;
+  db: D1Database;
 
-  constructor(data: any = {}) {
-    this.setProperties(data);
+  constructor(db: D1Database, data: any = {}) {
+    this.db = db;
+    this.props = this.setProperties(data);
   }
 
-  setProperties({ iduser, name, gender, birthdate, email, createdon, passwd, alert, facebook, google, twitter }: any) {
-    this.props = {
+  setProperties({
+    iduser,
+    name,
+    _gender,
+    _birthdate,
+    email,
+    createdon,
+    passwd,
+    alert,
+    active,
+    facebook,
+    google,
+    twitter,
+  }: any): IUser {
+    return {
       iduser,
       name,
-      gender: gender || 'F',
-      birthdate: birthdate || null,
       email,
       createdon: createdon || null,
       passwd: passwd || null,
-      alert,
-      active: true,
+      alert: !!alert,
+      active: active !== undefined ? !!active : true,
       facebook: facebook || null,
       google: google || null,
       twitter: twitter || null,
@@ -36,36 +49,52 @@ export class User {
   }
 
   async findById(iduser: number): Promise<User> {
-    const docs = await db.findOne({ iduser }).lean().exec();
-    if (docs) {
-      return new User(docs);
+    const result = await this.db
+      .prepare("SELECT * FROM Users WHERE iduser = ?")
+      .bind(iduser)
+      .first<IUser>();
+
+    if (result) {
+      return new User(this.db, result);
     } else {
       throw CustomErrors.HTTP.get404();
     }
   }
 
   async findByEmail(email: string): Promise<User> {
-    const docs = await db.findOne({ email }).lean().exec();
-    if (docs) {
-      return new User(docs);
+    const result = await this.db
+      .prepare("SELECT * FROM Users WHERE email = ?")
+      .bind(email)
+      .first<IUser>();
+
+    if (result) {
+      return new User(this.db, result);
     } else {
       throw CustomErrors.HTTP.get404();
     }
   }
 
   async findByFacebook(facebook: string): Promise<User> {
-    const docs = await db.findOne({ facebook }).lean().exec();
-    if (docs) {
-      return new User(docs);
+    const result = await this.db
+      .prepare("SELECT * FROM Users WHERE facebook = ?")
+      .bind(facebook)
+      .first<IUser>();
+
+    if (result) {
+      return new User(this.db, result);
     } else {
       throw CustomErrors.HTTP.get404();
     }
   }
 
   async findByGoogle(google: string): Promise<User> {
-    const docs = await db.findOne({ google }).lean().exec();
-    if (docs) {
-      return new User(docs);
+    const result = await this.db
+      .prepare("SELECT * FROM Users WHERE google = ?")
+      .bind(google)
+      .first<IUser>();
+
+    if (result) {
+      return new User(this.db, result);
     } else {
       throw CustomErrors.HTTP.get404();
     }
@@ -82,11 +111,11 @@ export class User {
 
   async verifyPassword(password: string): Promise<void> {
     const preHashPassword = this._preHashPassword(password);
-    const result = await bcrypt.compare(preHashPassword, this.props.passwd);
+    const result = await bcrypt.compare(preHashPassword, this.props.passwd!);
     if (result === true) {
       return;
     } else {
-      throw new Error('Invalid password!');
+      throw new Error("Invalid password!");
     }
   }
 
@@ -95,64 +124,99 @@ export class User {
   }
 
   setAutoPassword() {
-    this.props.passwd = md5(sha256([Math.random().toString(), new Date().toISOString()].join('gotMONEYapp'))).toString();
+    this.props.passwd = md5(
+      sha256([Math.random().toString(), new Date().toISOString()].join("gotMONEYapp")),
+    ).toString();
   }
 
   async create(): Promise<any> {
-    const hash = await this.hashPassword(this.props.passwd);
+    const hash = await this.hashPassword(this.props.passwd!);
     this.props.passwd = hash;
     this.props.active = true;
     this.props.createdon = new Date();
-    return db.create(this.props);
+
+    return this.db
+      .prepare(
+        "INSERT INTO Users (iduser, email, name, passwd, alert, active, facebook, google, twitter, createdon, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+      .bind(
+        this.props.iduser,
+        this.props.email,
+        this.props.name,
+        this.props.passwd,
+        this.props.alert ? 1 : 0,
+        this.props.active ? 1 : 0,
+        this.props.facebook,
+        this.props.google,
+        this.props.twitter,
+        this.props.createdon.toISOString(),
+        new Date().toISOString(),
+        new Date().toISOString(),
+      )
+      .run();
   }
 
   async update(): Promise<any> {
-    const docs = await db.findOneAndUpdate(
-      { iduser: this.props.iduser },
-      {
-        name: this.props.name,
-        alert: this.props.alert,
-      }
-    ).lean().exec();
-    if (docs) {
-      return docs;
+    const result = await this.db
+      .prepare("UPDATE Users SET name = ?, alert = ?, updatedAt = ? WHERE iduser = ?")
+      .bind(this.props.name, this.props.alert ? 1 : 0, new Date().toISOString(), this.props.iduser)
+      .run();
+
+    if (result.meta.changes > 0) {
+      return result;
     } else {
       throw CustomErrors.HTTP.get404();
     }
   }
 
   async updateFacebook(): Promise<any> {
-    const docs = await db.findOneAndUpdate({ iduser: this.props.iduser }, { facebook: this.props.facebook }).lean().exec();
-    if (docs) {
-      return docs;
+    const result = await this.db
+      .prepare("UPDATE Users SET facebook = ?, updatedAt = ? WHERE iduser = ?")
+      .bind(this.props.facebook, new Date().toISOString(), this.props.iduser)
+      .run();
+
+    if (result.meta.changes > 0) {
+      return result;
     } else {
       throw CustomErrors.HTTP.get404();
     }
   }
 
   async updateGoogle(): Promise<any> {
-    const docs = await db.findOneAndUpdate({ iduser: this.props.iduser }, { google: this.props.google }).lean().exec();
-    if (docs) {
-      return docs;
+    const result = await this.db
+      .prepare("UPDATE Users SET google = ?, updatedAt = ? WHERE iduser = ?")
+      .bind(this.props.google, new Date().toISOString(), this.props.iduser)
+      .run();
+
+    if (result.meta.changes > 0) {
+      return result;
     } else {
       throw CustomErrors.HTTP.get404();
     }
   }
 
   async updatePassword(): Promise<any> {
-    const hash = await this.hashPassword(this.props.passwd);
-    const docs = await db.findOneAndUpdate({ iduser: this.props.iduser }, { passwd: hash }).lean().exec();
-    if (docs) {
-      return docs;
+    const hash = await this.hashPassword(this.props.passwd!);
+    const result = await this.db
+      .prepare("UPDATE Users SET passwd = ?, updatedAt = ? WHERE iduser = ?")
+      .bind(hash, new Date().toISOString(), this.props.iduser)
+      .run();
+
+    if (result.meta.changes > 0) {
+      return result;
     } else {
       throw CustomErrors.HTTP.get404();
     }
   }
 
   async delete(): Promise<any> {
-    const docs = await db.findOneAndDelete({ iduser: this.props.iduser }).lean().exec();
-    if (docs) {
-      return docs;
+    const result = await this.db
+      .prepare("DELETE FROM Users WHERE iduser = ?")
+      .bind(this.props.iduser)
+      .run();
+
+    if (result.meta.changes > 0) {
+      return result;
     } else {
       throw CustomErrors.HTTP.get404();
     }

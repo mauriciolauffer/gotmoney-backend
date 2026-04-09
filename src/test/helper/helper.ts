@@ -1,4 +1,5 @@
-import faker from 'faker';
+import { faker } from '@faker-js/faker';
+import { vi } from 'vitest';
 
 const ID_ACCOUNT = 9999999999;
 const ID_CATEGORY = 9999999999;
@@ -8,11 +9,11 @@ const ID_USER = 9999999999;
 export const getFakeUser = () => {
   return {
     iduser: ID_USER,
-    name: faker.name.findName(),
+    name: faker.person.fullName(),
     email: faker.internet.email(),
-    createdon: faker.date.past().toJSON(),
+    createdon: faker.date.past(),
     passwd: faker.internet.password(),
-    alert: faker.random.boolean(),
+    alert: faker.datatype.boolean(),
     active: true,
     facebook: faker.internet.password(),
     google: faker.internet.password(),
@@ -24,21 +25,21 @@ export const getFakeAccount = () => {
   return {
     iduser: ID_USER,
     idaccount: ID_ACCOUNT,
-    idtype: faker.random.number(),
+    idtype: faker.number.int(),
     description: faker.finance.accountName().substring(0, 45),
     creditlimit: parseFloat(faker.finance.amount()),
     balance: parseFloat(faker.finance.amount()),
-    openingdate: faker.date.future().toJSON(),
+    openingdate: faker.date.future(),
     duedate: 25,
   };
 };
 
 export const getFakeAccountType = () => {
   return {
-    idtype: faker.random.number(),
+    idtype: faker.number.int(),
     description: faker.finance.accountName(),
     icon: faker.image.avatar(),
-    inactive: faker.random.boolean(),
+    inactive: faker.datatype.boolean(),
   };
 };
 
@@ -47,7 +48,7 @@ export const getFakeCategory = () => {
     iduser: ID_USER,
     idcategory: ID_CATEGORY,
     description: faker.finance.accountName(),
-    budget: faker.random.number(),
+    budget: faker.number.int(),
   };
 };
 
@@ -56,34 +57,43 @@ export const getFakeTransaction = () => {
     iduser: ID_USER,
     idtransaction: ID_TRANSACTION,
     idaccount: ID_ACCOUNT,
-    idparent: faker.random.number(),
+    idparent: faker.number.int(),
     idstatus: 5,
     description: faker.lorem.words(),
     instalment: '7',
     amount: parseFloat(faker.finance.amount()),
     type: 'C',
-    startdate: faker.date.past().toJSON(),
-    duedate: faker.date.future().toJSON(),
-    tag: faker.internet.color(),
+    startdate: faker.date.past(),
+    duedate: faker.date.future(),
+    tag: faker.color.human(),
     origin: 'W',
   };
 };
 
-export const getMongoDbModelMock = () => {
-  return {
-    where: function() {
-      return this;
-    },
-    sort: function() {
-      return this;
-    },
-    lean: function() {
-      return this;
-    },
-    exec: function() {
-      return this;
-    },
+export const getD1DatabaseMock = () => {
+  const mock: any = {
+    prepare: vi.fn(),
+    batch: vi.fn(),
+    exec: vi.fn(),
+    dump: vi.fn(),
   };
+
+  const createStatementMock = () => {
+    const sm: any = {
+      bind: vi.fn(),
+      first: vi.fn(),
+      all: vi.fn(),
+      run: vi.fn(),
+    };
+    sm.bind.mockImplementation(() => sm);
+    return sm;
+  };
+
+  const statementMock = createStatementMock();
+  mock.prepare.mockImplementation(() => createStatementMock());
+  mock._statementMock = statementMock;
+
+  return mock as unknown as D1Database & { _statementMock: any };
 };
 
 export default {
@@ -92,5 +102,5 @@ export default {
   getFakeAccountType,
   getFakeCategory,
   getFakeTransaction,
-  getMongoDbModelMock,
+  getD1DatabaseMock,
 };

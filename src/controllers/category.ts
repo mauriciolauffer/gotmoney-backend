@@ -1,15 +1,17 @@
-import db from '../models/category';
-import CustomErrors from '../utils/errors';
+import { ICategory } from "../models/category";
+import CustomErrors from "../utils/errors";
 
 export class Category {
-  props: any;
+  props: ICategory;
+  db: D1Database;
 
-  constructor(data: any = {}) {
-    this.setProperties(data);
+  constructor(db: D1Database, data: any = {}) {
+    this.db = db;
+    this.props = this.setProperties(data);
   }
 
-  setProperties({ idcategory, iduser, description, budget }: any) {
-    this.props = {
+  setProperties({ idcategory, iduser, description, budget }: any): ICategory {
+    return {
       idcategory,
       iduser,
       description,
@@ -22,45 +24,72 @@ export class Category {
   }
 
   async findById(iduser: number, idcategory: number): Promise<Category> {
-    const docs = await db.findOne({ iduser, idcategory }).lean().exec();
-    if (docs) {
-      return new Category(docs);
+    const result = await this.db
+      .prepare("SELECT * FROM Categories WHERE iduser = ? AND idcategory = ?")
+      .bind(iduser, idcategory)
+      .first<ICategory>();
+
+    if (result) {
+      return new Category(this.db, result);
     } else {
       throw CustomErrors.HTTP.get404();
     }
   }
 
-  async getAll(iduser: number): Promise<any[]> {
-    const docs = await db.find({ iduser }).sort({ description: 1 }).lean().exec();
-    return docs || [];
+  async getAll(iduser: number): Promise<ICategory[]> {
+    const { results } = await this.db
+      .prepare("SELECT * FROM Categories WHERE iduser = ? ORDER BY description ASC")
+      .bind(iduser)
+      .all<ICategory>();
+
+    return results || [];
   }
 
   async create(): Promise<any> {
-    return db.create(this.props);
+    return this.db
+      .prepare(
+        "INSERT INTO Categories (idcategory, iduser, description, budget, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)",
+      )
+      .bind(
+        this.props.idcategory,
+        this.props.iduser,
+        this.props.description,
+        this.props.budget,
+        new Date().toISOString(),
+        new Date().toISOString(),
+      )
+      .run();
   }
 
   async update(): Promise<any> {
-    const docs = await db.findOneAndUpdate(
-      { iduser: this.props.iduser, idcategory: this.props.idcategory },
-      {
-        description: this.props.description,
-        budget: this.props.budget,
-      }
-    ).lean().exec();
-    if (docs) {
-      return docs;
+    const result = await this.db
+      .prepare(
+        "UPDATE Categories SET description = ?, budget = ?, updatedAt = ? WHERE iduser = ? AND idcategory = ?",
+      )
+      .bind(
+        this.props.description,
+        this.props.budget,
+        new Date().toISOString(),
+        this.props.iduser,
+        this.props.idcategory,
+      )
+      .run();
+
+    if (result.meta.changes > 0) {
+      return result;
     } else {
       throw CustomErrors.HTTP.get404();
     }
   }
 
   async delete(): Promise<any> {
-    const docs = await db.findOneAndDelete({
-      iduser: this.props.iduser,
-      idcategory: this.props.idcategory,
-    }).lean().exec();
-    if (docs) {
-      return docs;
+    const result = await this.db
+      .prepare("DELETE FROM Categories WHERE iduser = ? AND idcategory = ?")
+      .bind(this.props.iduser, this.props.idcategory)
+      .run();
+
+    if (result.meta.changes > 0) {
+      return result;
     } else {
       throw CustomErrors.HTTP.get404();
     }

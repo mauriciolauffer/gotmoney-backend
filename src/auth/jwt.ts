@@ -1,6 +1,7 @@
-import { jwt } from 'hono/jwt';
+import { jwt } from "hono/jwt";
 
-export const jwtMiddleware = (secret: string) => jwt({
-  secret: secret,
-  alg: 'HS256',
-});
+export const jwtMiddleware = (secret: string) =>
+  jwt({
+    secret: secret,
+    alg: "HS256",
+  });
