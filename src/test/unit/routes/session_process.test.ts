@@ -28,7 +28,7 @@ describe("Session Process Route", () => {
 
   describe("#ok", () => {
     it("should return OK", async () => {
-      const result = await route.ok(c);
+      await route.ok(c);
       expect(c.json).toHaveBeenCalledWith({});
     });
   });

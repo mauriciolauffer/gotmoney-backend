@@ -13,7 +13,7 @@ function getSchema(id: string, required: string[]) {
     properties: {
       iduser: {
         type: "integer",
-        maximum: 9999999999999999,
+        maximum: 9007199254740991,
       },
       name: {
         type: "string",

@@ -8,19 +8,19 @@ function getSchema(id: string, required: string[]) {
     properties: {
       iduser: {
         type: "integer",
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       idtransaction: {
         type: "integer",
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       idaccount: {
         type: "integer",
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       idparent: {
         type: ["integer", "null"],
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       idstatus: {
         type: "integer",
@@ -38,7 +38,7 @@ function getSchema(id: string, required: string[]) {
         type: "number",
         default: 0,
         minimum: 0,
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       type: {
         type: "string",

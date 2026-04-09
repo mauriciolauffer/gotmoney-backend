@@ -17,8 +17,8 @@ export class User {
   setProperties({
     iduser,
     name,
-    gender,
-    birthdate,
+    _gender,
+    _birthdate,
     email,
     createdon,
     passwd,

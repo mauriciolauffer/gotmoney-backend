@@ -9,15 +9,15 @@ function getSchema(id: string, required: string[]) {
     properties: {
       iduser: {
         type: "integer",
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       idaccount: {
         type: "integer",
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       idtype: {
         type: "integer",
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       description: {
         type: "string",
@@ -27,12 +27,12 @@ function getSchema(id: string, required: string[]) {
         type: "number",
         default: 0,
         minimum: 0,
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       balance: {
         type: "number",
         default: 0,
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       openingdate: {
         type: "string",

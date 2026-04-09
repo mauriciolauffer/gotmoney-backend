@@ -1,5 +1,5 @@
-import faker from "faker";
-import { vi } from "vitest";
+import { faker } from '@faker-js/faker';
+import { vi } from 'vitest';
 
 const ID_ACCOUNT = 9999999999;
 const ID_CATEGORY = 9999999999;
@@ -9,11 +9,11 @@ const ID_USER = 9999999999;
 export const getFakeUser = () => {
   return {
     iduser: ID_USER,
-    name: faker.name.findName(),
+    name: faker.person.fullName(),
     email: faker.internet.email(),
     createdon: faker.date.past(),
     passwd: faker.internet.password(),
-    alert: faker.random.boolean(),
+    alert: faker.datatype.boolean(),
     active: true,
     facebook: faker.internet.password(),
     google: faker.internet.password(),
@@ -25,7 +25,7 @@ export const getFakeAccount = () => {
   return {
     iduser: ID_USER,
     idaccount: ID_ACCOUNT,
-    idtype: faker.random.number(),
+    idtype: faker.number.int(),
     description: faker.finance.accountName().substring(0, 45),
     creditlimit: parseFloat(faker.finance.amount()),
     balance: parseFloat(faker.finance.amount()),
@@ -36,10 +36,10 @@ export const getFakeAccount = () => {
 
 export const getFakeAccountType = () => {
   return {
-    idtype: faker.random.number(),
+    idtype: faker.number.int(),
     description: faker.finance.accountName(),
     icon: faker.image.avatar(),
-    inactive: faker.random.boolean(),
+    inactive: faker.datatype.boolean(),
   };
 };
 
@@ -48,7 +48,7 @@ export const getFakeCategory = () => {
     iduser: ID_USER,
     idcategory: ID_CATEGORY,
     description: faker.finance.accountName(),
-    budget: faker.random.number(),
+    budget: faker.number.int(),
   };
 };
 
@@ -57,16 +57,16 @@ export const getFakeTransaction = () => {
     iduser: ID_USER,
     idtransaction: ID_TRANSACTION,
     idaccount: ID_ACCOUNT,
-    idparent: faker.random.number(),
+    idparent: faker.number.int(),
     idstatus: 5,
     description: faker.lorem.words(),
-    instalment: "7",
+    instalment: '7',
     amount: parseFloat(faker.finance.amount()),
-    type: "C",
+    type: 'C',
     startdate: faker.date.past(),
     duedate: faker.date.future(),
-    tag: faker.internet.color(),
-    origin: "W",
+    tag: faker.color.human(),
+    origin: 'W',
   };
 };
 

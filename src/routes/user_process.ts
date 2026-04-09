@@ -3,6 +3,7 @@ import Account from "../controllers/account";
 import AccountType from "../controllers/accounttype";
 import Category from "../controllers/category";
 import User from "../controllers/user";
+import logger from "../utils/logger";
 
 export async function read(c: Context) {
   const db = c.env.DB;
@@ -30,6 +31,7 @@ export async function read(c: Context) {
       AccountType: result[3],
     });
   } catch (err: any) {
+    logger.error(err);
     throw err;
   }
 }
@@ -62,6 +64,7 @@ export async function update(c: Context) {
 
     return c.json({});
   } catch (err: any) {
+    logger.error(err);
     throw err;
   }
 }

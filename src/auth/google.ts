@@ -19,12 +19,14 @@ export async function googleAuth(profile: any, config: any) {
     const userFound = await user.findByGoogle(payload.google);
     return userFound.getProperties();
   } catch (err) {
+    logger.error(err);
     try {
       const userFound = await user.findByEmail(payload.email);
       userFound.props.google = payload.google;
       await userFound.updateGoogle();
       return userFound.getProperties();
     } catch (err2) {
+      logger.error(err2);
       return createUser(payload, config);
     }
   }

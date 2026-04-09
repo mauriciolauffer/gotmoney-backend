@@ -9,11 +9,11 @@ function getSchema(id: string, required: string[]) {
     properties: {
       iduser: {
         type: "integer",
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       idcategory: {
         type: "integer",
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       description: {
         type: "string",
@@ -23,7 +23,7 @@ function getSchema(id: string, required: string[]) {
         type: "integer",
         default: 0,
         minimum: 0,
-        maximum: 99999999999999999999,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
     },
     required: required,

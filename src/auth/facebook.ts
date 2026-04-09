@@ -15,12 +15,14 @@ export async function facebookAuth(profile: any, config: any) {
     const userFound = await user.findByFacebook(payload.facebook);
     return userFound.getProperties();
   } catch (err) {
+    logger.error(err);
     try {
       const userFound = await user.findByEmail(payload.email);
       userFound.props.facebook = payload.facebook;
       await userFound.updateFacebook();
       return userFound.getProperties();
     } catch (err2) {
+      logger.error(err2);
       return createUser(payload, config);
     }
   }

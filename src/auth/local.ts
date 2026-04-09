@@ -12,6 +12,7 @@ export async function login(c: Context) {
     await userFound.verifyPassword(passwd);
     return userFound.getProperties();
   } catch (err) {
+    logger.error(err);
     throw new Error("Invalid username/password!");
   }
 }

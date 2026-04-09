@@ -49,6 +49,7 @@ export async function passwordRecovery(c: Context) {
 
     return c.json({});
   } catch (err: any) {
+    logger.error(err);
     throw err;
   }
 }
