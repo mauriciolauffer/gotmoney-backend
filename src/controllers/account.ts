@@ -1,16 +1,9 @@
 import { Temporal } from "temporal-polyfill";
 import { IAccount } from "../models/account";
 import CustomErrors from "../utils/errors";
+import { BaseController } from "./base";
 
-export class Account {
-  props: IAccount;
-  db: D1Database;
-
-  constructor(db: D1Database, data: any = {}) {
-    this.db = db;
-    this.props = this.setProperties(data);
-  }
-
+export class Account extends BaseController<IAccount> {
   setProperties({
     iduser,
     idaccount,
@@ -31,10 +24,6 @@ export class Account {
       openingdate,
       duedate,
     };
-  }
-
-  getProperties() {
-    return { ...this.props };
   }
 
   async findById(iduser: number, idaccount: number): Promise<Account> {

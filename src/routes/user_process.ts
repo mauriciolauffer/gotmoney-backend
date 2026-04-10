@@ -4,14 +4,15 @@ import AccountType from "../controllers/accounttype";
 import Category from "../controllers/category";
 import User from "../controllers/user";
 import logger from "../utils/logger";
+import CustomErrors from "../utils/errors";
+import { getContextData } from "../utils/route-helper";
 
 export async function read(c: Context) {
-  const db = c.env.DB;
+  const { db, reqUser } = getContextData(c);
   const account = new Account(db);
   const accountType = new AccountType(db);
   const category = new Category(db);
   const user = new User(db);
-  const reqUser = c.get("jwtPayload") || (c.get("user") as any);
 
   try {
     const result = await Promise.all([
@@ -37,9 +38,8 @@ export async function read(c: Context) {
 }
 
 export async function update(c: Context) {
-  const db = c.env.DB;
+  const { db, reqUser } = getContextData(c);
   const payload = await c.req.json();
-  const reqUser = c.get("jwtPayload") || (c.get("user") as any);
   payload.iduser = reqUser.iduser;
   const user = new User(db, payload);
 
@@ -55,7 +55,7 @@ export async function update(c: Context) {
       : true;
 
     if (userFound && !isPasswordVerified) {
-      throw new Error("Invalid old password");
+      throw CustomErrors.HTTP.get401("Invalid old password");
     }
 
     if (userFound && isPasswordVerified) {

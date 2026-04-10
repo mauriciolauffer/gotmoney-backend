@@ -1,16 +1,9 @@
 import { Temporal } from "temporal-polyfill";
 import { ITransaction } from "../models/transaction";
 import CustomErrors from "../utils/errors";
+import { BaseController } from "./base";
 
-export class Transaction {
-  props: ITransaction;
-  db: D1Database;
-
-  constructor(db: D1Database, data: any = {}) {
-    this.db = db;
-    this.props = this.setProperties(data);
-  }
-
+export class Transaction extends BaseController<ITransaction> {
   setProperties({
     iduser,
     idtransaction,
@@ -41,10 +34,6 @@ export class Transaction {
       tag,
       origin,
     };
-  }
-
-  getProperties() {
-    return { ...this.props };
   }
 
   async findById(iduser: number, idtransaction: number): Promise<Transaction> {
@@ -113,7 +102,9 @@ export class Transaction {
         this.props.startdate instanceof Temporal.PlainDate
           ? this.props.startdate.toString()
           : this.props.startdate,
-        this.props.duedate instanceof Temporal.PlainDate ? this.props.duedate.toString() : this.props.duedate,
+        this.props.duedate instanceof Temporal.PlainDate
+          ? this.props.duedate.toString()
+          : this.props.duedate,
         this.props.tag,
         this.props.origin,
         now,
@@ -165,7 +156,9 @@ export class Transaction {
         this.props.startdate instanceof Temporal.PlainDate
           ? this.props.startdate.toString()
           : this.props.startdate,
-        this.props.duedate instanceof Temporal.PlainDate ? this.props.duedate.toString() : this.props.duedate,
+        this.props.duedate instanceof Temporal.PlainDate
+          ? this.props.duedate.toString()
+          : this.props.duedate,
         this.props.tag,
         this.props.origin,
         Temporal.Now.instant().toString(),

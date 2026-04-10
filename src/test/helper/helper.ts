@@ -1,6 +1,6 @@
-import { faker } from '@faker-js/faker';
-import { Temporal } from 'temporal-polyfill';
-import { vi } from 'vitest';
+import { faker } from "@faker-js/faker";
+import { Temporal } from "temporal-polyfill";
+import { vi } from "vitest";
 
 const ID_ACCOUNT = 9999999999;
 const ID_CATEGORY = 9999999999;
@@ -30,7 +30,7 @@ export const getFakeAccount = () => {
     description: faker.finance.accountName().substring(0, 45),
     creditlimit: parseFloat(faker.finance.amount()),
     balance: parseFloat(faker.finance.amount()),
-    openingdate: Temporal.PlainDate.from(faker.date.future().toISOString().split('T')[0]),
+    openingdate: Temporal.PlainDate.from(faker.date.future().toISOString().split("T")[0]),
     duedate: 25,
   };
 };
@@ -61,13 +61,13 @@ export const getFakeTransaction = () => {
     idparent: faker.number.int(),
     idstatus: 5,
     description: faker.lorem.words(),
-    instalment: '7',
+    instalment: "7",
     amount: parseFloat(faker.finance.amount()),
-    type: 'C',
-    startdate: Temporal.PlainDate.from(faker.date.past().toISOString().split('T')[0]),
-    duedate: Temporal.PlainDate.from(faker.date.future().toISOString().split('T')[0]),
+    type: "C",
+    startdate: Temporal.PlainDate.from(faker.date.past().toISOString().split("T")[0]),
+    duedate: Temporal.PlainDate.from(faker.date.future().toISOString().split("T")[0]),
     tag: faker.color.human(),
-    origin: 'W',
+    origin: "W",
   };
 };
 

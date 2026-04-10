@@ -1,10 +1,11 @@
 import { IAccountType } from "../models/accounttype";
+import CustomErrors from "../utils/errors";
+import { BaseController } from "./base";
 
-export class AccountType {
-  db: D1Database;
-
-  constructor(db: D1Database) {
-    this.db = db;
+export class AccountType extends BaseController<IAccountType[]> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setProperties(_data: any): IAccountType[] {
+    return [];
   }
 
   async getAll(): Promise<IAccountType[]> {
@@ -12,9 +13,7 @@ export class AccountType {
       const { results } = await this.db.prepare("SELECT * FROM AccountTypes").all<IAccountType>();
       return results || [];
     } catch (err: any) {
-      err.status = 404;
-      err.code = "NOT_FOUND";
-      throw err;
+      throw CustomErrors.HTTP.get404(err.message);
     }
   }
 }

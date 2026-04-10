@@ -1,16 +1,9 @@
 import { Temporal } from "temporal-polyfill";
 import { ICategory } from "../models/category";
 import CustomErrors from "../utils/errors";
+import { BaseController } from "./base";
 
-export class Category {
-  props: ICategory;
-  db: D1Database;
-
-  constructor(db: D1Database, data: any = {}) {
-    this.db = db;
-    this.props = this.setProperties(data);
-  }
-
+export class Category extends BaseController<ICategory> {
   setProperties({ idcategory, iduser, description, budget }: any): ICategory {
     return {
       idcategory,
@@ -18,10 +11,6 @@ export class Category {
       description,
       budget: budget || 0,
     };
-  }
-
-  getProperties() {
-    return { ...this.props };
   }
 
   async findById(iduser: number, idcategory: number): Promise<Category> {
