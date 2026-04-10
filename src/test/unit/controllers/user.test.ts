@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import bcrypt from "bcryptjs";
+import { Temporal } from "temporal-polyfill";
 import User from "../../../controllers/user";
 import * as Helper from "../../helper/helper";
 
@@ -77,7 +78,7 @@ describe("User Controller", () => {
 
     it("should fail when compare password to hash", async () => {
       const user = new User(dbMock);
-      const password = dataEntryTest.passwd! + Date.now();
+      const password = dataEntryTest.passwd! + Temporal.Now.instant().epochMilliseconds;
       user.props.passwd = passwordHash;
       await expect(user.verifyPassword(password)).rejects.toThrow();
     });

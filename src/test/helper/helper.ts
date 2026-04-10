@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { Temporal } from 'temporal-polyfill';
 import { vi } from 'vitest';
 
 const ID_ACCOUNT = 9999999999;
@@ -11,7 +12,7 @@ export const getFakeUser = () => {
     iduser: ID_USER,
     name: faker.person.fullName(),
     email: faker.internet.email(),
-    createdon: faker.date.past(),
+    createdon: Temporal.Instant.from(faker.date.past().toISOString()),
     passwd: faker.internet.password(),
     alert: faker.datatype.boolean(),
     active: true,
@@ -29,7 +30,7 @@ export const getFakeAccount = () => {
     description: faker.finance.accountName().substring(0, 45),
     creditlimit: parseFloat(faker.finance.amount()),
     balance: parseFloat(faker.finance.amount()),
-    openingdate: faker.date.future(),
+    openingdate: Temporal.PlainDate.from(faker.date.future().toISOString().split('T')[0]),
     duedate: 25,
   };
 };
@@ -63,8 +64,8 @@ export const getFakeTransaction = () => {
     instalment: '7',
     amount: parseFloat(faker.finance.amount()),
     type: 'C',
-    startdate: faker.date.past(),
-    duedate: faker.date.future(),
+    startdate: Temporal.PlainDate.from(faker.date.past().toISOString().split('T')[0]),
+    duedate: Temporal.PlainDate.from(faker.date.future().toISOString().split('T')[0]),
     tag: faker.color.human(),
     origin: 'W',
   };

@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import User from "../controllers/user";
 import mailer from "../utils/mailer";
 import logger from "../utils/logger";
@@ -29,7 +30,7 @@ export async function facebookAuth(profile: any, config: any) {
 }
 
 async function createUser(payload: any, config: any) {
-  payload.birthdate = new Date();
+  payload.birthdate = Temporal.Now.plainDateISO();
   const db = config.DB;
   const user = new User(db, payload);
   user.setId();

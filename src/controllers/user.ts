@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import sha256 from "crypto-js/sha256";
 import base64 from "crypto-js/enc-base64";
 import md5 from "crypto-js/md5";
+import { Temporal } from "temporal-polyfill";
 import { IUser } from "../models/user";
 import CustomErrors from "../utils/errors";
 
@@ -120,20 +121,21 @@ export class User {
   }
 
   setId() {
-    this.props.iduser = Date.now();
+    this.props.iduser = Temporal.Now.instant().epochMilliseconds;
   }
 
   setAutoPassword() {
     this.props.passwd = md5(
-      sha256([Math.random().toString(), new Date().toISOString()].join("gotMONEYapp")),
+      sha256([Math.random().toString(), Temporal.Now.instant().toString()].join("gotMONEYapp")),
     ).toString();
   }
 
   async create(): Promise<any> {
     const hash = await this.hashPassword(this.props.passwd!);
+    const now = Temporal.Now.instant().toString();
     this.props.passwd = hash;
     this.props.active = true;
-    this.props.createdon = new Date();
+    this.props.createdon = Temporal.Instant.from(now);
 
     return this.db
       .prepare(
@@ -149,9 +151,9 @@ export class User {
         this.props.facebook,
         this.props.google,
         this.props.twitter,
-        this.props.createdon.toISOString(),
-        new Date().toISOString(),
-        new Date().toISOString(),
+        now,
+        now,
+        now,
       )
       .run();
   }
@@ -159,7 +161,7 @@ export class User {
   async update(): Promise<any> {
     const result = await this.db
       .prepare("UPDATE Users SET name = ?, alert = ?, updatedAt = ? WHERE iduser = ?")
-      .bind(this.props.name, this.props.alert ? 1 : 0, new Date().toISOString(), this.props.iduser)
+      .bind(this.props.name, this.props.alert ? 1 : 0, Temporal.Now.instant().toString(), this.props.iduser)
       .run();
 
     if (result.meta.changes > 0) {
@@ -172,7 +174,7 @@ export class User {
   async updateFacebook(): Promise<any> {
     const result = await this.db
       .prepare("UPDATE Users SET facebook = ?, updatedAt = ? WHERE iduser = ?")
-      .bind(this.props.facebook, new Date().toISOString(), this.props.iduser)
+      .bind(this.props.facebook, Temporal.Now.instant().toString(), this.props.iduser)
       .run();
 
     if (result.meta.changes > 0) {
@@ -185,7 +187,7 @@ export class User {
   async updateGoogle(): Promise<any> {
     const result = await this.db
       .prepare("UPDATE Users SET google = ?, updatedAt = ? WHERE iduser = ?")
-      .bind(this.props.google, new Date().toISOString(), this.props.iduser)
+      .bind(this.props.google, Temporal.Now.instant().toString(), this.props.iduser)
       .run();
 
     if (result.meta.changes > 0) {
@@ -199,7 +201,7 @@ export class User {
     const hash = await this.hashPassword(this.props.passwd!);
     const result = await this.db
       .prepare("UPDATE Users SET passwd = ?, updatedAt = ? WHERE iduser = ?")
-      .bind(hash, new Date().toISOString(), this.props.iduser)
+      .bind(hash, Temporal.Now.instant().toString(), this.props.iduser)
       .run();
 
     if (result.meta.changes > 0) {
