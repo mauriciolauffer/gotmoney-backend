@@ -132,9 +132,10 @@ export class User {
 
   async create(): Promise<any> {
     const hash = await this.hashPassword(this.props.passwd!);
+    const now = Temporal.Now.instant().toString();
     this.props.passwd = hash;
     this.props.active = true;
-    this.props.createdon = Temporal.Now.instant();
+    this.props.createdon = Temporal.Instant.from(now);
 
     return this.db
       .prepare(
@@ -150,9 +151,9 @@ export class User {
         this.props.facebook,
         this.props.google,
         this.props.twitter,
-        this.props.createdon.toString(),
-        Temporal.Now.instant().toString(),
-        Temporal.Now.instant().toString(),
+        now,
+        now,
+        now,
       )
       .run();
   }
