@@ -70,10 +70,9 @@ export class Transaction {
   }
 
   async findByPeriod(iduser: number, year: number, month: number): Promise<ITransaction[]> {
-    const firstDay = Temporal.PlainDate.from({ year, month, day: 1 }).toString();
-    const lastDay = Temporal.PlainDate.from({ year, month, day: 1 })
-      .with({ day: Temporal.PlainDate.from({ year, month, day: 1 }).daysInMonth })
-      .toString();
+    const date = Temporal.PlainDate.from({ year, month, day: 1 });
+    const firstDay = date.toString();
+    const lastDay = date.with({ day: date.daysInMonth }).toString();
 
     const { results } = await this.db
       .prepare(
