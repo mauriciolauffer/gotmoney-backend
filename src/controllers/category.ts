@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import { ICategory } from "../models/category";
 import CustomErrors from "../utils/errors";
 
@@ -55,8 +56,8 @@ export class Category {
         this.props.iduser,
         this.props.description,
         this.props.budget,
-        new Date().toISOString(),
-        new Date().toISOString(),
+        Temporal.Now.instant().toString(),
+        Temporal.Now.instant().toString(),
       )
       .run();
   }
@@ -69,7 +70,7 @@ export class Category {
       .bind(
         this.props.description,
         this.props.budget,
-        new Date().toISOString(),
+        Temporal.Now.instant().toString(),
         this.props.iduser,
         this.props.idcategory,
       )

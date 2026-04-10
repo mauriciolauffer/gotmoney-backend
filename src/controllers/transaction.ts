@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import { ITransaction } from "../models/transaction";
 import CustomErrors from "../utils/errors";
 
@@ -69,8 +70,10 @@ export class Transaction {
   }
 
   async findByPeriod(iduser: number, year: number, month: number): Promise<ITransaction[]> {
-    const firstDay = new Date(year, month - 1, 1).toISOString();
-    const lastDay = new Date(year, month, 0, 23, 59, 59, 999).toISOString();
+    const firstDay = Temporal.PlainDate.from({ year, month, day: 1 }).toString();
+    const lastDay = Temporal.PlainDate.from({ year, month, day: 1 })
+      .with({ day: Temporal.PlainDate.from({ year, month, day: 1 }).daysInMonth })
+      .toString();
 
     const { results } = await this.db
       .prepare(
@@ -83,7 +86,7 @@ export class Transaction {
   }
 
   async findOverdue(iduser: number): Promise<ITransaction[]> {
-    const now = new Date().toISOString();
+    const now = Temporal.Now.plainDateISO().toString();
     const { results } = await this.db
       .prepare("SELECT * FROM Transactions WHERE iduser = ? AND duedate < ? ORDER BY duedate ASC")
       .bind(iduser, now)
@@ -107,14 +110,14 @@ export class Transaction {
         this.props.instalment,
         this.props.amount,
         this.props.type,
-        this.props.startdate instanceof Date
-          ? this.props.startdate.toISOString()
+        this.props.startdate instanceof Temporal.PlainDate
+          ? this.props.startdate.toString()
           : this.props.startdate,
-        this.props.duedate instanceof Date ? this.props.duedate.toISOString() : this.props.duedate,
+        this.props.duedate instanceof Temporal.PlainDate ? this.props.duedate.toString() : this.props.duedate,
         this.props.tag,
         this.props.origin,
-        new Date().toISOString(),
-        new Date().toISOString(),
+        Temporal.Now.instant().toString(),
+        Temporal.Now.instant().toString(),
       )
       .run();
   }
@@ -135,12 +138,12 @@ export class Transaction {
           p.instalment,
           p.amount,
           p.type,
-          p.startdate instanceof Date ? p.startdate.toISOString() : p.startdate,
-          p.duedate instanceof Date ? p.duedate.toISOString() : p.duedate,
+          p.startdate instanceof Temporal.PlainDate ? p.startdate.toString() : p.startdate,
+          p.duedate instanceof Temporal.PlainDate ? p.duedate.toString() : p.duedate,
           p.tag,
           p.origin,
-          new Date().toISOString(),
-          new Date().toISOString(),
+          Temporal.Now.instant().toString(),
+          Temporal.Now.instant().toString(),
         );
     });
     return this.db.batch(statements);
@@ -158,13 +161,13 @@ export class Transaction {
         this.props.instalment,
         this.props.amount,
         this.props.type,
-        this.props.startdate instanceof Date
-          ? this.props.startdate.toISOString()
+        this.props.startdate instanceof Temporal.PlainDate
+          ? this.props.startdate.toString()
           : this.props.startdate,
-        this.props.duedate instanceof Date ? this.props.duedate.toISOString() : this.props.duedate,
+        this.props.duedate instanceof Temporal.PlainDate ? this.props.duedate.toString() : this.props.duedate,
         this.props.tag,
         this.props.origin,
-        new Date().toISOString(),
+        Temporal.Now.instant().toString(),
         this.props.iduser,
         this.props.idtransaction,
       )

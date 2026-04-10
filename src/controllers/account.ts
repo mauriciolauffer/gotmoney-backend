@@ -1,3 +1,4 @@
+import { Temporal } from "temporal-polyfill";
 import { IAccount } from "../models/account";
 import CustomErrors from "../utils/errors";
 
@@ -70,12 +71,12 @@ export class Account {
         this.props.description,
         this.props.creditlimit,
         this.props.balance,
-        this.props.openingdate instanceof Date
-          ? this.props.openingdate.toISOString()
+        this.props.openingdate instanceof Temporal.PlainDate
+          ? this.props.openingdate.toString()
           : this.props.openingdate,
         this.props.duedate,
-        new Date().toISOString(),
-        new Date().toISOString(),
+        Temporal.Now.instant().toString(),
+        Temporal.Now.instant().toString(),
       )
       .run();
   }
@@ -90,11 +91,11 @@ export class Account {
         this.props.description,
         this.props.creditlimit,
         this.props.balance,
-        this.props.openingdate instanceof Date
-          ? this.props.openingdate.toISOString()
+        this.props.openingdate instanceof Temporal.PlainDate
+          ? this.props.openingdate.toString()
           : this.props.openingdate,
         this.props.duedate,
-        new Date().toISOString(),
+        Temporal.Now.instant().toString(),
         this.props.iduser,
         this.props.idaccount,
       )

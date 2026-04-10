@@ -1,3 +1,5 @@
+import { Temporal } from "temporal-polyfill";
+
 export interface IUser {
   iduser: number;
   email: string;
@@ -8,9 +10,9 @@ export interface IUser {
   facebook?: string;
   google?: string;
   twitter?: string;
-  createdon: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdon: Temporal.Instant;
+  createdAt?: Temporal.Instant;
+  updatedAt?: Temporal.Instant;
 }
 
 export default IUser;

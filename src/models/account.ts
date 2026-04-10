@@ -1,3 +1,5 @@
+import { Temporal } from "temporal-polyfill";
+
 export interface IAccount {
   idaccount: number;
   iduser: number;
@@ -5,10 +7,10 @@ export interface IAccount {
   description: string;
   creditlimit: number;
   balance: number;
-  openingdate: Date;
+  openingdate: Temporal.PlainDate;
   duedate: number;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Temporal.Instant;
+  updatedAt?: Temporal.Instant;
 }
 
 export default IAccount;

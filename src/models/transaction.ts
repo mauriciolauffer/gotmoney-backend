@@ -1,3 +1,5 @@
+import { Temporal } from "temporal-polyfill";
+
 export interface ITransaction {
   iduser: number;
   idtransaction: number;
@@ -8,12 +10,12 @@ export interface ITransaction {
   instalment: string;
   amount: number;
   type: string;
-  startdate: Date;
-  duedate: Date;
+  startdate: Temporal.PlainDate;
+  duedate: Temporal.PlainDate;
   tag: string;
   origin: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: Temporal.Instant;
+  updatedAt?: Temporal.Instant;
 }
 
 export default ITransaction;
