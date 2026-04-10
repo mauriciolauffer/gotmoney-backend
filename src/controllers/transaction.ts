@@ -95,6 +95,7 @@ export class Transaction {
   }
 
   async create(): Promise<any> {
+    const now = Temporal.Now.instant().toString();
     return this.db
       .prepare(
         "INSERT INTO Transactions (idtransaction, iduser, idaccount, idparent, idstatus, description, instalment, amount, type, startdate, duedate, tag, origin, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -115,13 +116,14 @@ export class Transaction {
         this.props.duedate instanceof Temporal.PlainDate ? this.props.duedate.toString() : this.props.duedate,
         this.props.tag,
         this.props.origin,
-        Temporal.Now.instant().toString(),
-        Temporal.Now.instant().toString(),
+        now,
+        now,
       )
       .run();
   }
 
   async createBatch(payload: any[]): Promise<any> {
+    const now = Temporal.Now.instant().toString();
     const statements = payload.map((p) => {
       return this.db
         .prepare(
@@ -141,8 +143,8 @@ export class Transaction {
           p.duedate instanceof Temporal.PlainDate ? p.duedate.toString() : p.duedate,
           p.tag,
           p.origin,
-          Temporal.Now.instant().toString(),
-          Temporal.Now.instant().toString(),
+          now,
+          now,
         );
     });
     return this.db.batch(statements);
