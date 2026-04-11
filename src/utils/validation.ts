@@ -10,8 +10,8 @@ addFormats(ajv);
  * @param payload - The data to be validated.
  * @returns An error object if validation fails, otherwise null.
  */
-export function validate(schema: any, payload: any): any | null {
-  const validator = schema.$id ? (ajv.getSchema(schema.$id) || ajv.compile(schema)) : ajv.compile(schema);
+export async function validate(schema: any, payload: any): Promise<any | null> {
+  const validator = ajv.compile(schema);
   if (!validator(payload)) {
     const err = new Error("Invalid data!") as any;
     err.status = 400;

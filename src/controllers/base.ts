@@ -10,6 +10,12 @@ export abstract class BaseController<T> {
   abstract setProperties(data: any): T;
 
   getProperties(): T {
+    if (this.props === null || typeof this.props !== "object") {
+      return this.props;
+    }
+    if (Array.isArray(this.props)) {
+      return [...this.props] as unknown as T;
+    }
     return { ...this.props };
   }
 }
