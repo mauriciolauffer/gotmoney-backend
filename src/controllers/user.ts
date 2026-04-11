@@ -5,16 +5,9 @@ import md5 from "crypto-js/md5";
 import { Temporal } from "temporal-polyfill";
 import { IUser } from "../models/user";
 import CustomErrors from "../utils/errors";
+import { BaseController } from "./base";
 
-export class User {
-  props: IUser;
-  db: D1Database;
-
-  constructor(db: D1Database, data: any = {}) {
-    this.db = db;
-    this.props = this.setProperties(data);
-  }
-
+export class User extends BaseController<IUser> {
   setProperties({
     iduser,
     name,
@@ -43,7 +36,7 @@ export class User {
     };
   }
 
-  getProperties() {
+  override getProperties() {
     const props = { ...this.props };
     delete props.passwd;
     return props;
@@ -116,7 +109,7 @@ export class User {
     if (result === true) {
       return;
     } else {
-      throw new Error("Invalid password!");
+      throw CustomErrors.HTTP.get401("Invalid password!");
     }
   }
 
@@ -161,7 +154,12 @@ export class User {
   async update(): Promise<any> {
     const result = await this.db
       .prepare("UPDATE Users SET name = ?, alert = ?, updatedAt = ? WHERE iduser = ?")
-      .bind(this.props.name, this.props.alert ? 1 : 0, Temporal.Now.instant().toString(), this.props.iduser)
+      .bind(
+        this.props.name,
+        this.props.alert ? 1 : 0,
+        Temporal.Now.instant().toString(),
+        this.props.iduser,
+      )
       .run();
 
     if (result.meta.changes > 0) {

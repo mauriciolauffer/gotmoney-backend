@@ -1,9 +1,5 @@
 import { Context, Next } from "hono";
-import Ajv from "ajv";
-import addFormats from "ajv-formats";
-
-const ajv = new Ajv({ allErrors: true });
-addFormats(ajv);
+import { validate } from "../utils/validation";
 
 function getSchema(id: string, required: string[]) {
   return {
@@ -13,7 +9,7 @@ function getSchema(id: string, required: string[]) {
     properties: {
       iduser: {
         type: "integer",
-        maximum: 9007199254740991,
+        maximum: Number.MAX_SAFE_INTEGER,
       },
       name: {
         type: "string",
@@ -35,18 +31,6 @@ function getSchema(id: string, required: string[]) {
     },
     required: required,
   };
-}
-
-async function validate(schema: any, payload: any) {
-  const validate = ajv.compile(schema);
-  if (!validate(payload)) {
-    const err = new Error("Invalid data!") as any;
-    err.status = 400;
-    err.validationErrors = validate.errors;
-    return err;
-  } else {
-    return null;
-  }
 }
 
 export async function isValidRecovery(c: Context, next: Next) {

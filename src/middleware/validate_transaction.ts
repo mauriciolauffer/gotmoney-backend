@@ -1,9 +1,9 @@
 import { Context, Next } from "hono";
-import Ajv from "ajv";
+import { validate } from "../utils/validation";
 
 function getSchema(id: string, required: string[]) {
   return {
-    id: id,
+    $id: id,
     type: "object",
     properties: {
       iduser: {
@@ -67,18 +67,6 @@ function getSchema(id: string, required: string[]) {
     },
     required: required,
   };
-}
-
-async function validate(schema: any, payload: any) {
-  const ajv = new Ajv({ allErrors: true });
-  if (!ajv.validate(schema, payload)) {
-    const err = new Error("Invalid data!") as any;
-    err.status = 400;
-    err.validationErrors = ajv.errors;
-    return err;
-  } else {
-    return null;
-  }
 }
 
 export async function isValid(c: Context, next: Next) {
